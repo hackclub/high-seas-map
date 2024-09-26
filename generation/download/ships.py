@@ -9,7 +9,7 @@ def download_ships():
 
   click.echo("Downloading ships from Airtable...")
   # all_ships = ships_table.all(formula="{hidden} = FALSE()")
-  all_ships = ships_table.all()
+  all_ships = ships_table.all(fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url"])
 
   shipsJson = json.dumps(all_ships)
 
