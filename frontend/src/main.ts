@@ -5,10 +5,11 @@ import Sigma from "sigma";
 const graph = new Graph();
 
 const nodesReq = fetch("/data/nodes.json").then((r) => r.json());
+const edgesReq = fetch("/data/edges.json").then((r) => r.json());
 const shipsReq = fetch("/data/filtered_ships.json").then((r) => r.json());
 
-Promise.all([nodesReq, shipsReq]).then(
-  ([nodes, ships]) => {
+Promise.all([nodesReq, edgesReq, shipsReq]).then(
+  ([nodes, edges, ships]) => {
     for (const node in nodes) {
       const name = ships[node].fields.title;
       graph.addNode(node, {
@@ -19,9 +20,9 @@ Promise.all([nodesReq, shipsReq]).then(
       });
     }
 
-    // for (const edge of edges) {
-    //   graph.addEdge(edge.split("-")[0], edge.split("-")[1], { size: 0.5 });
-    // }
+    for (const edge of edges) {
+      graph.addEdge(edge.split("-")[0], edge.split("-")[1], { size: 0.1 });
+    }
 
     const sigmaInstance = new Sigma(graph, document.getElementById("app")!);
   },
