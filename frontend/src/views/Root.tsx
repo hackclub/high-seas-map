@@ -44,5 +44,6 @@ export default function Root() {
       <SigmaContainer style={{ height: "500px", width: "500px" }}>
         <LoadGraph />
       </SigmaContainer>
-    </main>);
+    </main>
+  );
 }
