@@ -1,5 +1,5 @@
 #!/bin/sh
 cd generation
-python main.py all
+python3 main.py all
 cd ../frontend
 npx vite build
