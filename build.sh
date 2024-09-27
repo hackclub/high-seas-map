@@ -2,4 +2,4 @@
 cd generation
 python main.py all
 cd ../frontend
-vite build
+npx vite build
