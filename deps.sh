@@ -1,6 +1,6 @@
 #!/bin/sh
 
-dnf install -y python3 python3-pip
+dnf install -y python3 python3-pip cairo
 
 cd generation
 pip install -r requirements.txt
