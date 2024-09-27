@@ -24,6 +24,6 @@ Promise.all([nodesReq, edgesReq, shipsReq]).then(
       graph.addEdge(edge.split("-")[0], edge.split("-")[1], { size: 0.1 });
     }
 
-    const sigmaInstance = new Sigma(graph, document.getElementById("app")!);
+    new Sigma(graph, document.getElementById("app")!);
   },
 );
