@@ -32,7 +32,7 @@ export const LoadGraph = (props: {
             y: nodes[node][1],
             size: 10,
             color: "#00000000",
-            image: "http://localhost:3000/ship.png",
+            image: "ship.png",
           });
         }
 
@@ -73,6 +73,7 @@ export default function Root() {
             },
             labelWeight: "800",
             labelDensity: 0.1,
+            labelSize: 10,
           }}
         >
           <LoadGraph setShips={setShips} />
