@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import Graph from "graphology";
 import { SigmaContainer, useLoadGraph } from "@react-sigma/core";
-import { NodeImageProgram } from "@sigma/node-image";
+import { createNodeImageProgram } from "@sigma/node-image";
 import "@react-sigma/core/lib/react-sigma.min.css";
 
 import ShipOverview from "./ShipOverview";
 import { ShipsContext, type ShipsData } from "../context/ShipsContext";
 
 import type { Dispatch, SetStateAction } from "react";
+
+const imageProgram = createNodeImageProgram({
+  keepWithinCircle: false,
+  objectFit: "contain",
+});
 
 // Component that load the graph
 export const LoadGraph = (props: {
@@ -30,9 +35,9 @@ export const LoadGraph = (props: {
             label: name,
             x: nodes[node][0],
             y: nodes[node][1],
-            size: 10,
+            size: 15,
             color: "#00000000",
-            image: "ship.png",
+            image: Math.random() > 0.5 ? "ship2.png" : "ship1.png",
           });
         }
 
@@ -60,13 +65,13 @@ export default function Root() {
             height: "100vh",
             width: "100vw",
             // backgroundColor: "#10d5eb",
-            backgroundImage: "url(/ocean.webp)",
+            backgroundImage: "url(/seabkgr.svg)",
             backgroundSize: "cover",
           }}
           settings={{
             defaultNodeType: "image",
             nodeProgramClasses: {
-              image: NodeImageProgram,
+              image: imageProgram,
             },
             labelColor: {
               color: "white",
