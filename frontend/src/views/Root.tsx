@@ -79,7 +79,7 @@ export default function Root() {
             },
             labelWeight: "800",
             labelDensity: 0.1,
-            labelSize: 10,
+            labelSize: 11,
           }}
         >
           <LoadGraph setShips={setShips} />
