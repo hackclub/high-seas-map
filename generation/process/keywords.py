@@ -13,20 +13,18 @@ def process_keywords():
   shipsFile = open('data/ships.json', 'r', encoding='utf-8')
   ships = json.loads(shipsFile.read())
 
-  nlp = spacy.load("en_core_web_lg")
+  nlp = spacy.load("en_core_web_sm")
 
   keywords = {}
   filtered_ships = {}
 
   with click.progressbar(ships, label="Generating keywords...") as bar:
     for ship in bar:
-      readme_url = ship.get("fields").get("readme_url")
+      readme_text = requests.get(ship["fields"]["readme_url"])
 
-      if readme_url == None:
-        click.echo(f"Skipping ship record {ship['id']} since it does not have a README URL")
+      if readme_text.status_code != 200:
+        click.echo(f"Skipping ship record {ship['id']} as it does not have a valid README")
         continue
-
-      readme_text = requests.get(readme_url)
 
       doc = nlp(readme_text.text)
 
