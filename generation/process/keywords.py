@@ -13,7 +13,9 @@ def process_keywords():
   shipsFile = open('data/ships.json', 'r', encoding='utf-8')
   ships = json.loads(shipsFile.read())
 
-  nlp = spacy.load("en_core_web_sm")
+  nlp = spacy.load("en_core_web_lg")
+  # Use in local dev
+  # nlp = spacy.load("en_core_web_sm")
 
   keywords = {}
   filtered_ships = {}
