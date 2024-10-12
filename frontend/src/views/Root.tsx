@@ -5,6 +5,7 @@ import { createNodeImageProgram } from "@sigma/node-image";
 import "@react-sigma/core/lib/react-sigma.min.css";
 
 import ShipOverview from "./ShipOverview";
+import Search from "./Search";
 import { ShipsContext, type ShipsData } from "../context/ShipsContext";
 
 import type { Dispatch, SetStateAction } from "react";
@@ -24,11 +25,10 @@ export const LoadGraph = (props: {
     const graph = new Graph();
 
     const nodesReq = fetch("/data/nodes.json").then((r) => r.json());
-    const edgesReq = fetch("/data/edges.json").then((r) => r.json());
     const shipsReq = fetch("/data/filtered_ships.json").then((r) => r.json());
 
-    Promise.all([nodesReq, edgesReq, shipsReq])
-      .then(([nodes, edges, ships]) => {
+    Promise.all([nodesReq, shipsReq])
+      .then(([nodes, ships]) => {
         for (const node in nodes) {
           const name = ships[node].fields.title;
           graph.addNode(node, {
@@ -56,6 +56,7 @@ export const LoadGraph = (props: {
 
 export default function Root() {
   const [ships, setShips] = useState<ShipsData | null>(null);
+  const [selectedShip, setSelectedShip] = useState<string>();
 
   return (
     <main>
@@ -82,7 +83,8 @@ export default function Root() {
           }}
         >
           <LoadGraph setShips={setShips} />
-          <ShipOverview />
+          <ShipOverview selectedShip={selectedShip} />
+          <Search setSelectedShip={setSelectedShip} />
         </SigmaContainer>
       </ShipsContext.Provider>
     </main>

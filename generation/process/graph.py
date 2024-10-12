@@ -72,7 +72,3 @@ def process_graph():
   nodes_json = json.dumps(nodes)
   nodes_file = open('../frontend/public/data/nodes.json', 'w', encoding='utf-8')
   nodes_file.write(nodes_json)
-
-  edges_json = json.dumps(edges)
-  edges_file = open('../frontend/public/data/edges.json', 'w', encoding='utf-8')
-  edges_file.write(edges_json)

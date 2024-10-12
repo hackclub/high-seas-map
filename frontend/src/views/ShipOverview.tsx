@@ -1,5 +1,5 @@
 import { useSigma } from "@react-sigma/core";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import Markdown from "react-markdown";
 import { FaLink, FaCode } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
@@ -8,16 +8,18 @@ import { ShipsContext, type ShipData } from "../context/ShipsContext";
 
 import type { SigmaNodeEventPayload } from "sigma/types";
 
-export default function ShipOverview() {
+export default function ShipOverview({
+  selectedShip,
+}: {
+  selectedShip?: string;
+}) {
   const sigma = useSigma();
   const [ship, setShip] = useState<ShipData | null>(null);
   const [readme, setReadme] = useState<string | null>(null);
   const ships = useContext(ShipsContext);
 
-  useEffect(() => {
-    const clickNodeListener = (payload: SigmaNodeEventPayload) => {
-      const shipId = payload.node;
-
+  const updateShip = useCallback(
+    (shipId: string) => {
       if (!ships) return;
       const shipData = ships[shipId];
 
@@ -28,6 +30,20 @@ export default function ShipOverview() {
         .then((text) => {
           setReadme(text);
         });
+    },
+    [ships],
+  );
+
+  useEffect(() => {
+    if (!selectedShip) return;
+    updateShip(selectedShip);
+  }, [selectedShip]);
+
+  useEffect(() => {
+    const clickNodeListener = (payload: SigmaNodeEventPayload) => {
+      const shipId = payload.node;
+
+      updateShip(shipId);
     };
 
     const clickOffListener = () => {
@@ -54,12 +70,20 @@ export default function ShipOverview() {
           <p className="text-black text-xl font-bold">{ship.fields.title}</p>
           <div className="flex justify-start items-center gap-3">
             {ship.fields.deploy_url && (
-              <a href={ship.fields.deploy_url} target="_blank">
+              <a
+                title="Ship deploy link"
+                href={ship.fields.deploy_url}
+                target="_blank"
+              >
                 <FaLink className="text-xl" />
               </a>
             )}
             {ship.fields.repo_url && (
-              <a href={ship.fields.repo_url} target="_blank">
+              <a
+                title="Ship repo link"
+                href={ship.fields.repo_url}
+                target="_blank"
+              >
                 <FaCode className="text-xl" />
               </a>
             )}
