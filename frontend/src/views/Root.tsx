@@ -7,6 +7,7 @@ import "@react-sigma/core/lib/react-sigma.min.css";
 import ShipOverview from "./ShipOverview";
 import Search from "./Search";
 import { ShipsContext, type ShipsData } from "../context/ShipsContext";
+import { drawHover } from "../utils/rendering";
 
 import type { Dispatch, SetStateAction } from "react";
 
@@ -80,6 +81,7 @@ export default function Root() {
             labelWeight: "800",
             labelDensity: 0.1,
             labelSize: 11,
+            defaultDrawNodeHover: drawHover,
           }}
         >
           <LoadGraph setShips={setShips} />
