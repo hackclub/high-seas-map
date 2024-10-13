@@ -5,6 +5,8 @@ from download.ships import download_ships
 from process.similarity import process_similarity
 from process.keywords import process_keywords
 from process.graph import process_graph
+from process.model import process_model
+from process.clusters import process_clusters
 from all import run_all
 
 load_dotenv()
@@ -40,6 +42,14 @@ def keywords():
 @process.command()
 def graph():
 	process_graph()
+	
+@process.command()
+def model():
+	process_model()
+	
+@process.command()
+def clusters():
+	process_clusters()
 
 @root.group()
 def query():

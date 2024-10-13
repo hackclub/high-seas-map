@@ -59,10 +59,15 @@ def process_graph():
 
   clusters = map(map_ship, objstr)
   objects = []
+  pretty_clusters = []
   for cluster in clusters:
+    pretty_cluster = []
     for obj in cluster:
       for n in obj.split('\n'):
-        objects.append(re.split(r'\[.+\] ', n)[-1])
+        node_id = re.split(r'\[.+\] ', n)[-1]
+        objects.append(node_id)
+        pretty_cluster.append(node_id)
+    pretty_clusters.append(pretty_cluster)
 
   nodes = {}
   for i in range(len(objects)):
@@ -72,3 +77,7 @@ def process_graph():
   nodes_json = json.dumps(nodes)
   nodes_file = open('../frontend/public/data/nodes.json', 'w', encoding='utf-8')
   nodes_file.write(nodes_json)
+
+  clusters_json = json.dumps(pretty_clusters)
+  clusters_file = open('data/clusters.json', 'w', encoding='utf-8')
+  clusters_file.write(clusters_json)
