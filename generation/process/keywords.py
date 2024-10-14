@@ -1,9 +1,9 @@
 import json
+import spacy
 import click
 from os.path import exists
 import os
 import requests
-import pandas as pd
 
 def process_keywords():
   if not exists("data/ships.json"):
@@ -12,6 +12,10 @@ def process_keywords():
 
   shipsFile = open('data/ships.json', 'r', encoding='utf-8')
   ships = json.loads(shipsFile.read())
+
+  nlp = spacy.load("en_core_web_lg")
+  # Use in local dev
+  # nlp = spacy.load("en_core_web_sm")
 
   keywords = {}
   filtered_ships = {}
@@ -24,7 +28,7 @@ def process_keywords():
         click.echo(f"Skipping ship record {ship['id']} as it does not have a valid README")
         continue
 
-      
+      doc = nlp(readme_text.text)
 
       if len(doc.ents) == 0:
         click.echo(f"Skipping ship record {ship['id']} since it does not have any keywords")
