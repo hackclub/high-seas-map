@@ -7,6 +7,7 @@ from process.keywords import process_keywords
 from process.graph import process_graph
 from process.model import process_model
 from process.clusters import process_clusters
+from process.model_keywords import process_model_keywords
 from all import run_all
 
 load_dotenv()
@@ -50,6 +51,10 @@ def model():
 @process.command()
 def clusters():
 	process_clusters()
+	
+@process.command()
+def model_keywords():
+	process_model_keywords()
 
 @root.group()
 def query():
