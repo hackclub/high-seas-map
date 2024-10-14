@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import Graph from "graphology";
-import { SigmaContainer, useLoadGraph } from "@react-sigma/core";
+import { SigmaContainer, useLoadGraph, useSigma } from "@react-sigma/core";
 import { createNodeImageProgram } from "@sigma/node-image";
 import "@react-sigma/core/lib/react-sigma.min.css";
+import { easings } from "sigma/utils";
 
 import ShipOverview from "./ShipOverview";
 import Search from "./Search";
@@ -17,7 +18,7 @@ const imageProgram = createNodeImageProgram({
 });
 
 // Component that load the graph
-export const LoadGraph = (props: {
+const LoadGraph = (props: {
   setShips: Dispatch<SetStateAction<ShipsData | null>>;
 }) => {
   const loadGraph = useLoadGraph();
@@ -55,6 +56,70 @@ export const LoadGraph = (props: {
   return null;
 };
 
+const KeyboardControl = () => {
+  const sigma = useSigma();
+
+  useEffect(() => {
+    let keymap: { [key: string]: boolean } = {};
+
+    const listener = (e: KeyboardEvent) => {
+      keymap[e.key] = e.type == "keydown";
+
+      const camera = sigma.getCamera();
+      const state = camera.getState();
+      const translateIncrement = 5 / sigma.getGraphToViewportRatio();
+      const zoomIncrement = 0.15;
+      let dx = 0;
+      let dy = 0;
+      let dz = 0;
+
+      const pressedKeys = Object.entries(keymap)
+        .filter((k) => k[1])
+        .map((k) => k[0]);
+
+      if (pressedKeys.includes("ArrowUp") || pressedKeys.includes("w")) {
+        dy = translateIncrement;
+      }
+      if (pressedKeys.includes("ArrowLeft") || pressedKeys.includes("a")) {
+        dx = -translateIncrement;
+      }
+      if (pressedKeys.includes("ArrowDown") || pressedKeys.includes("s")) {
+        dy = -translateIncrement;
+      }
+      if (pressedKeys.includes("ArrowRight") || pressedKeys.includes("d")) {
+        dx = translateIncrement;
+      }
+      if (pressedKeys.includes("-") || pressedKeys.includes("_")) {
+        dz = zoomIncrement;
+      }
+      if (pressedKeys.includes("+") || pressedKeys.includes("=")) {
+        dz = -zoomIncrement;
+      }
+
+      camera.animate(
+        {
+          x: state.x + dx,
+          y: state.y + dy,
+          ratio: state.ratio + dz,
+        },
+        {
+          easing: easings.linear,
+        },
+      );
+    };
+
+    document.addEventListener("keydown", listener);
+    document.addEventListener("keyup", listener);
+
+    return () => {
+      document.removeEventListener("keydown", listener);
+      document.removeEventListener("keyup", listener);
+    };
+  }, []);
+
+  return null;
+};
+
 export default function Root() {
   const [ships, setShips] = useState<ShipsData | null>(null);
   const [selectedShip, setSelectedShip] = useState<string>();
@@ -85,6 +150,7 @@ export default function Root() {
           }}
         >
           <LoadGraph setShips={setShips} />
+          <KeyboardControl />
           <ShipOverview selectedShip={selectedShip} />
           <Search setSelectedShip={setSelectedShip} />
         </SigmaContainer>
