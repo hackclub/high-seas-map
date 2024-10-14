@@ -60,13 +60,13 @@ def process_model():
       ship.append("")
 
   # Split the dataset into training and testing sets
-  X_train, X_test, y_train, y_test = train_test_split(X, homo_y, random_state=42)
+  X_train, X_test, y_train, y_test = train_test_split(X, homo_y, train_size=0.5)
 
   # Initialize and train the classifier
   # clf = SVC(kernel="rbf", C=543)
   clf = LogisticRegression(C=1e20)
   multi_clf = MultiOutputClassifier(clf, n_jobs=2)
-  multi_clf.fit(X, homo_y)
+  multi_clf.fit(X_train, y_train)
 
   with open("data/model.pkl", "wb") as f:
     dump(multi_clf, f, protocol=5)
