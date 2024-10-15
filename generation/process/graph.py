@@ -3,6 +3,7 @@ import click
 import igraph as ig
 from os.path import exists
 import re
+from math import sqrt
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -45,7 +46,8 @@ def process_graph():
   click.echo("Plotting graph...")
 
   clustered = g.community_leiden(weights=g.es["weight"], resolution=5, n_iterations=20)
-  layout = g.layout("fr")
+  # layout = g.layout("fr", niter=2000, start_temp=(sqrt(len(g.vs)) / 5))
+  layout = g.layout("graphopt", node_charge=0.025, node_mass=10, spring_length=2, niter=300)
 
   cplot = ig.plot(clustered, None, layout=layout, bbox=(10, 10))
   objstr = re.split(r'\[\s*\d\] ', str(cplot._objects[0][0]))
