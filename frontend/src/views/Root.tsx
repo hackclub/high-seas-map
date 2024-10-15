@@ -147,6 +147,8 @@ export default function Root() {
             labelDensity: 0.1,
             labelSize: 11,
             defaultDrawNodeHover: drawHover,
+            minCameraRatio: 0.01,
+            maxCameraRatio: 1,
           }}
         >
           <LoadGraph setShips={setShips} />
