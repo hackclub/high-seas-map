@@ -3,6 +3,9 @@ import { useState, useEffect, useContext, useCallback } from "react";
 import Markdown from "react-markdown";
 import { FaLink, FaCode } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
+import remarkEmoji from "remark-emoji";
+// @ts-expect-error
+import remarkStripHtml from "remark-strip-html";
 
 import { ShipsContext, type ShipData } from "../context/ShipsContext";
 
@@ -95,7 +98,7 @@ export default function ShipOverview({
         <p>Loading...</p>
       ) : (
         <Markdown
-          remarkPlugins={[remarkGfm]}
+          remarkPlugins={[remarkGfm, remarkEmoji, remarkStripHtml]}
           className="p-10 pt-0 prose prose-invert"
         >
           {readme}
