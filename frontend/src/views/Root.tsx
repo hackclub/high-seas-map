@@ -56,7 +56,7 @@ const LoadGraph = (props: {
   return null;
 };
 
-const KeyboardControl = () => {
+const KeyboardControl = (props: { typing: boolean }) => {
   const sigma = useSigma();
 
   useEffect(() => {
@@ -65,9 +65,11 @@ const KeyboardControl = () => {
     const listener = (e: KeyboardEvent) => {
       keymap[e.key] = e.type == "keydown";
 
+      if (props.typing) return;
+
       const camera = sigma.getCamera();
       const state = camera.getState();
-      const translateIncrement = 5 / sigma.getGraphToViewportRatio();
+      const translateIncrement = 1 / 7 / sigma.getGraphToViewportRatio();
       const zoomIncrement = 0.15;
       let dx = 0;
       let dy = 0;
@@ -115,7 +117,7 @@ const KeyboardControl = () => {
       document.removeEventListener("keydown", listener);
       document.removeEventListener("keyup", listener);
     };
-  }, []);
+  }, [props.typing]);
 
   return null;
 };
@@ -123,6 +125,7 @@ const KeyboardControl = () => {
 export default function Root() {
   const [ships, setShips] = useState<ShipsData | null>(null);
   const [selectedShip, setSelectedShip] = useState<string>();
+  const [typing, setTyping] = useState(false);
 
   return (
     <main>
@@ -152,9 +155,9 @@ export default function Root() {
           }}
         >
           <LoadGraph setShips={setShips} />
-          <KeyboardControl />
+          <KeyboardControl typing={typing} />
           <ShipOverview selectedShip={selectedShip} />
-          <Search setSelectedShip={setSelectedShip} />
+          <Search setSelectedShip={setSelectedShip} setTyping={setTyping} />
         </SigmaContainer>
       </ShipsContext.Provider>
     </main>

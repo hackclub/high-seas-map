@@ -7,8 +7,10 @@ import type { Dispatch, SetStateAction } from "react";
 
 export default function Search({
   setSelectedShip,
+  setTyping,
 }: {
   setSelectedShip: Dispatch<SetStateAction<string | undefined>>;
+  setTyping: Dispatch<SetStateAction<boolean>>;
 }) {
   const sigma = useSigma();
   const [query, setQuery] = useState("");
@@ -35,6 +37,8 @@ export default function Search({
           placeholder="Search for a ship..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setTyping(true)}
+          onBlur={() => setTyping(false)}
         />
       </div>
       {query !== "" && (
