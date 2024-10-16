@@ -29,12 +29,12 @@ export default function Search({
   return (
     <div className="fixed top-5 left-5 w-1/5">
       <div
-        className={`w-full p-3 rounded-sm bg-widget border-2 border-black text-lg ${query !== "" ? "rounded-b-none" : "shadow-lg"}`}
+        className={`w-full p-3 rounded-sm bg-widget border-2 border-yellow-600 shadow-yellow-600 text-lg ${query !== "" ? "rounded-b-none border-b-0" : "shadow-sm"}`}
       >
         <input
           type="text"
           className="outline-none w-full bg-widget placeholder:text-slate-200 text-white"
-          placeholder="Search for a ship..."
+          placeholder="🚢 Search for a ship..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setTyping(true)}
@@ -42,7 +42,7 @@ export default function Search({
         />
       </div>
       {query !== "" && (
-        <div className="flex flex-col justify-start items-start rounded-sm shadow-lg border-2 max-h-[50vh] overflow-y-scroll border-black border-t-0 rounded-t-none py-3 bg-widget text-white">
+        <div className="flex flex-col justify-start items-start rounded-sm shadow-sm shadow-yellow-600 border-2 max-h-[50vh] overflow-y-scroll border-yellow-600 border-t-0 rounded-t-none py-3 bg-widget text-white">
           {Object.entries(results).map((ship) => (
             <button
               key={ship[0]}
