@@ -37,7 +37,7 @@ const LoadGraph = (props: {
             label: name,
             x: nodes[node][0],
             y: nodes[node][1],
-            size: 15,
+            size: 20,
             color: "#00000000",
             image: Math.random() > 0.5 ? "ship2.png" : "ship1.png",
           });
@@ -145,7 +145,7 @@ export default function Root() {
             },
             labelWeight: "800",
             labelDensity: 0.1,
-            labelSize: 11,
+            labelSize: 12,
             defaultDrawNodeHover: drawHover,
             minCameraRatio: 0.01,
             maxCameraRatio: 1,
