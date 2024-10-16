@@ -64,10 +64,10 @@ export default function ShipOverview({
   if (!ship) return null;
 
   return (
-    <div className="fixed bottom-3 right-3 rounded-md w-2/5 max-h-[50vh] overflow-y-scroll border-2 bg-white border-black">
-      <div className="sticky top-0 px-10 pt-10 pb-2 w-full bg-white">
+    <div className="fixed bottom-3 shadow-lg right-3 rounded-sm w-2/5 max-h-[50vh] overflow-y-scroll border-2 bg-hwidget border-black text-white">
+      <div className="sticky top-0 px-10 pt-10 pb-2 w-full bg-hwidget">
         <div className="flex flex-row justify-between items-center">
-          <p className="text-black text-xl font-bold">{ship.fields.title}</p>
+          <p className="text-white text-xl font-bold">{ship.fields.title}</p>
           <div className="flex justify-start items-center gap-3">
             {ship.fields.deploy_url && (
               <a
@@ -94,7 +94,10 @@ export default function ShipOverview({
       {readme === null ? (
         <p>Loading...</p>
       ) : (
-        <Markdown remarkPlugins={[remarkGfm]} className="p-10 pt-0 prose">
+        <Markdown
+          remarkPlugins={[remarkGfm]}
+          className="p-10 pt-0 prose prose-invert"
+        >
           {readme}
         </Markdown>
       )}

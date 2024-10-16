@@ -4,7 +4,12 @@ import typography from "@tailwindcss/typography";
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        widget: "#214469",
+        hwidget: "#1d3a59",
+      },
+    },
   },
   plugins: [typography],
 };

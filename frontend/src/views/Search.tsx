@@ -27,22 +27,22 @@ export default function Search({
   return (
     <div className="fixed top-5 left-5 w-1/5">
       <div
-        className={`w-full p-3 rounded-md bg-white border-2 border-black text-lg ${query !== "" ? "rounded-b-none" : ""}`}
+        className={`w-full p-3 rounded-sm bg-widget border-2 border-black text-lg ${query !== "" ? "rounded-b-none" : "shadow-lg"}`}
       >
         <input
           type="text"
-          className="outline-none w-full"
+          className="outline-none w-full bg-widget placeholder:text-slate-200 text-white"
           placeholder="Search for a ship..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
       {query !== "" && (
-        <div className="flex flex-col justify-start items-start rounded-md border-2 max-h-[50vh] overflow-y-scroll border-black border-t-0 rounded-t-none py-3 bg-white">
+        <div className="flex flex-col justify-start items-start rounded-sm shadow-lg border-2 max-h-[50vh] overflow-y-scroll border-black border-t-0 rounded-t-none py-3 bg-widget text-white">
           {Object.entries(results).map((ship) => (
             <button
               key={ship[0]}
-              className="p-3 hover:bg-gray-200 w-full text-left"
+              className="p-3 hover:bg-hwidget w-full text-left"
               onClick={() => {
                 const displayData = sigma.getNodeDisplayData(ship[0]);
                 if (!displayData) return;
