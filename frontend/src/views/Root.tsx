@@ -148,7 +148,7 @@ export default function Root() {
             },
             labelWeight: "800",
             labelDensity: 0.1,
-            labelSize: 12,
+            labelSize: 11,
             defaultDrawNodeHover: drawHover,
             minCameraRatio: 0.01,
             maxCameraRatio: 1,
