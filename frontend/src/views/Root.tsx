@@ -22,6 +22,7 @@ const LoadGraph = (props: {
   setShips: Dispatch<SetStateAction<ShipsData | null>>;
 }) => {
   const loadGraph = useLoadGraph();
+  const sigma = useSigma();
 
   useEffect(() => {
     const graph = new Graph();
@@ -31,7 +32,29 @@ const LoadGraph = (props: {
 
     Promise.all([nodesReq, shipsReq])
       .then(([nodes, ships]) => {
+        let minX = 0;
+        let maxX = 0;
+        let minY = 0;
+        let maxY = 0;
+
         for (const node in nodes) {
+          if (node === "HIGH_SEAS_ISLAND") {
+            graph.addNode(node, {
+              label: "",
+              x: nodes[node][0],
+              y: nodes[node][1],
+              size: 75,
+              color: "#00000000",
+              image: "island.png",
+            });
+            continue;
+          }
+
+          if (nodes[node][0] < minX) minX = nodes[node][0];
+          if (nodes[node][0] > maxX) maxX = nodes[node][0];
+          if (nodes[node][1] < minY) minY = nodes[node][1];
+          if (nodes[node][1] > maxY) maxY = nodes[node][1];
+
           const name = ships[node].fields.title;
           graph.addNode(node, {
             label: name,
@@ -43,13 +66,19 @@ const LoadGraph = (props: {
           });
         }
 
-        // for (const edge of edges) {
-        //   graph.addEdge(edge.split("-")[0], edge.split("-")[1], { size: 0.1 });
-        // }
         props.setShips(ships);
       })
       .then(() => {
         loadGraph(graph);
+
+        const displayData = sigma.getNodeDisplayData("HIGH_SEAS_ISLAND");
+        if (!displayData) return;
+        const camera = sigma.getCamera();
+        camera.setState({
+          x: displayData.x,
+          y: displayData.y,
+          ratio: 0.4,
+        });
       });
   }, [loadGraph]);
 

@@ -3,7 +3,7 @@ import click
 import igraph as ig
 from os.path import exists
 import re
-from math import sqrt
+from math import floor, ceil
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -47,9 +47,9 @@ def process_graph():
 
   clustered = g.community_leiden(weights=g.es["weight"], resolution=5, n_iterations=20)
   # layout = g.layout("fr", niter=2000, start_temp=(sqrt(len(g.vs)) / 5))
-  layout = g.layout("graphopt", node_charge=0.025, node_mass=10, spring_length=2, niter=300)
+  layout = g.layout("graphopt", node_charge=0.03, node_mass=10, spring_length=2, niter=300)
 
-  cplot = ig.plot(clustered, None, layout=layout, bbox=(10, 10))
+  cplot = ig.plot(clustered, None, layout=layout, bbox=(0, 0, 10, 10))
   objstr = re.split(r'\[\s*\d\] ', str(cplot._objects[0][0]))
   objstr.pop(0)
 
@@ -72,11 +72,101 @@ def process_graph():
     pretty_clusters.append(pretty_cluster)
 
   nodes = {}
+  minX = 0
+  maxX = 0
+  minY = 0
+  maxY = 0
   for i in range(len(objects)):
     key = objects[i]
-    nodes[key] = cplot._objects[0][5]['layout'].__dict__['_coords'][i]
+    coords = cplot._objects[0][5]['layout'].__dict__['_coords'][i]
 
-  nodes_json = json.dumps(nodes)
+    if coords[0] < minX:
+      minX = coords[0]
+    if coords[0] > maxX:
+      maxX = coords[0]
+    if coords[1] < minY:
+      minY = coords[1]
+    if coords[1] > maxY:
+      maxY = coords[1]
+
+    nodes[key] = coords
+
+  # island placing
+  click.echo("Placing central island...")
+
+  scaledNodes = {}
+  with click.progressbar(nodes.keys(), label="Scaling node coordinates...") as bar:
+    for nodeId in bar:
+      node = nodes[nodeId]
+
+      percentX = (node[0] - minX) / (maxX - minX)
+      scaledX = 100 * percentX
+
+      percentY = (node[1] - minY) / (maxY - minY)
+      scaledY = 100 * percentY
+
+      scaledNodes[nodeId] = [scaledX, scaledY]
+  
+  minX = floor(minX)
+  maxX = ceil(maxX)
+  minY = floor(minY)
+  maxY = ceil(maxY)
+  
+  grid = []
+  with click.progressbar(range(0, maxY - minY, 1), label="Building node grid...") as bar:
+    for y in bar:
+      row = []
+
+      for x in range(0, maxX - minX, 1):
+        row.append(False)
+
+        for id in scaledNodes.keys():
+          n = scaledNodes[id]
+
+          if floor(n[0]) == x and floor(n[1]) == y:
+            row[x] = True
+            break;
+      
+      grid.append(row)
+  
+  islandW = 10
+  islandH = 10
+
+  xStreak = 0
+  islandX = None
+  islandY = None
+  with click.progressbar(range(len(grid)), label="Finding island location...") as bar:
+    for y in bar:
+      for x in range(len(grid[y])):
+        if grid[y][x]:
+          xStreak += 1
+        
+        if xStreak == islandW:
+          bad = False
+
+          for checkY in range(y+1, y + islandH + 1):
+            for checkX in range(x, x + islandW + 1):
+              if grid[checkY][checkX]:
+                bad = True
+                xStreak = 0
+                break
+
+            if bad:
+              break
+          
+          if not bad:
+            islandX = x - islandW
+            islandY = y
+        
+        if islandX:
+          break
+      
+      if islandX:
+        break
+
+  scaledNodes["HIGH_SEAS_ISLAND"] = [islandX, islandY]
+
+  nodes_json = json.dumps(scaledNodes)
   nodes_file = open('../frontend/public/data/nodes.json', 'w', encoding='utf-8')
   nodes_file.write(nodes_json)
 

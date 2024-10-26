@@ -30,6 +30,8 @@ export function drawHover(
   data: PlainObject,
   settings: PlainObject,
 ) {
+  if (!data.label) return;
+
   const size = settings.labelSize;
   const font = settings.labelFont;
   const weight = settings.labelWeight;
