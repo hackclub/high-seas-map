@@ -51,7 +51,11 @@ def process_combined_keywords():
 
   with click.progressbar(ships, label="Generating keywords...") as bar:
     for ship in bar:
-      readme_text = requests.get(ship["fields"]["readme_url"])
+      try:
+        readme_text = requests.get(ship["fields"]["readme_url"])
+      except:
+        click.echo(f"Skipping ship record {ship['id']} as it does not have a valid README")
+        continue
 
       if readme_text.status_code != 200:
         click.echo(f"Skipping ship record {ship['id']} as it does not have a valid README")
