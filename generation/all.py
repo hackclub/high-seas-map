@@ -21,5 +21,5 @@ def run_all():
   
   process_similarity()
   process_graph()
-  process_clusters()
+  # process_clusters()
   
