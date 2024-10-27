@@ -30,7 +30,7 @@ def process_graph():
 
       # give each ship at least one edge
       if (shipA in counted_ships) and (shipB in counted_ships):
-        if float(value) < 0.25:
+        if float(value) < 0.05:
           continue
 
       counted_ships.add(shipA)
@@ -52,10 +52,10 @@ def process_graph():
   click.echo("Plotting graph...")
 
   clustered = g.community_leiden(weights=g.es["weight"], resolution=5, n_iterations=20)
-  # layout = g.layout("fr", niter=2000, start_temp=(sqrt(len(g.vs)) / 5))
-  layout = g.layout("graphopt", node_charge=0.03, node_mass=10, spring_length=2, niter=300)
+  # layout = g.layout("drl")
+  layout = g.layout("graphopt", node_charge=0.04, node_mass=0.5, spring_length=1, niter=200)
 
-  cplot = ig.plot(clustered, None, layout=layout, bbox=(0, 0, 10, 10))
+  cplot = ig.plot(clustered, None, layout=layout, bbox=(100, 100))
   objstr = re.split(r'\[\s*\d\] ', str(cplot._objects[0][0]))
   objstr.pop(0)
 
@@ -97,6 +97,7 @@ def process_graph():
 
     nodes[key] = coords
 
+  aspect = (maxX - minX) / (maxY - minY)
   # island placing
   click.echo("Placing central island...")
 
@@ -106,19 +107,19 @@ def process_graph():
       node = nodes[nodeId]
 
       percentX = (node[0] - minX) / (maxX - minX)
-      scaledX = 100 * percentX
+      scaledX = aspect * 200 * percentX
 
       percentY = (node[1] - minY) / (maxY - minY)
-      scaledY = 100 * percentY
+      scaledY = (1 / aspect) * 200 * percentY
 
       scaledNodes[nodeId] = [scaledX, scaledY]
   
   grid = []
-  with click.progressbar(range(0, 100, 1), label="Building node grid...") as bar:
+  with click.progressbar(range(0, 200, 1), label="Building node grid...") as bar:
     for y in bar:
       row = []
 
-      for x in range(0, 100, 1):
+      for x in range(0, 200, 1):
         row.append(False)
 
         for id in scaledNodes.keys():
@@ -130,8 +131,8 @@ def process_graph():
       
       grid.append(row)
   
-  islandW = 10
-  islandH = 10
+  islandW = 15
+  islandH = 15
 
   xStreak = 0
   islandX = None
