@@ -53,7 +53,7 @@ def process_graph():
 
   clustered = g.community_leiden(weights=g.es["weight"], resolution=5, n_iterations=20)
   # layout = g.layout("drl")
-  layout = g.layout("graphopt", node_charge=0.04, node_mass=0.5, spring_length=1, niter=200)
+  layout = g.layout("graphopt", node_charge=0.045, node_mass=0.5, spring_length=1, niter=200)
 
   cplot = ig.plot(clustered, None, layout=layout, bbox=(100, 100))
   objstr = re.split(r'\[\s*\d\] ', str(cplot._objects[0][0]))
