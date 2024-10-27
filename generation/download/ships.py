@@ -34,9 +34,10 @@ def download_ships():
         repo_info = repo_info_req.json()
         branch = repo_info['default_branch'] if "default_branch" in repo_info else "main"
         readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{branch}/README.md"
-      # File url
-      elif path[3] == "blob":
-        readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{path[4]}/README.md"
+      elif len(path) > 3:
+        # File url
+        if path[3] == "blob":
+          readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{path[4]}/README.md"
 
     ship_dict = dict(ship)
     ship_dict["fields"]["readme_url"] = readme_url
