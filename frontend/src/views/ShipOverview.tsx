@@ -71,9 +71,11 @@ export default function ShipOverview({
 
   return (
     <div className="fixed bottom-3 shadow-sm shadow-yellow-600 right-3 rounded-sm w-2/5 max-h-[50vh] overflow-y-scroll border-2 bg-hwidget border-yellow-600 text-white">
-      <div className="sticky top-0 px-10 pt-10 pb-2 w-full bg-hwidget">
+      <div className="px-10 pt-10 pb-2 w-full bg-hwidget">
         <div className="flex flex-row justify-between items-center">
-          <p className="text-white text-xl font-bold">{ship.fields.title}</p>
+          <p className="text-white sm:text-lg text-xl font-bold">
+            {ship.fields.title}
+          </p>
           <div className="flex justify-start items-center gap-3">
             {ship.fields.deploy_url && (
               <a
@@ -99,7 +101,7 @@ export default function ShipOverview({
       </div>
       <Markdown
         remarkPlugins={[remarkGfm, remarkEmoji, remarkStripHtml]}
-        className="p-10 pt-0 prose prose-invert"
+        className="p-10 pt-0 prose sm:prose-sm prose-invert"
       >
         {readme ?? "Loading..."}
       </Markdown>
