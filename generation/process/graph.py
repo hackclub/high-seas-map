@@ -131,8 +131,8 @@ def process_graph():
       
       grid.append(row)
   
-  islandW = 15
-  islandH = 15
+  islandW = 17
+  islandH = 17
 
   xStreak = 0
   islandX = None
