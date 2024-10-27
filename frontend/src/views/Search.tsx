@@ -49,6 +49,7 @@ export default function Search({
               className="p-3 hover:bg-hwidget w-full text-left"
               onClick={() => {
                 const displayData = sigma.getNodeDisplayData(ship[0]);
+                console.log(ship[0]);
                 if (!displayData) return;
                 const camera = sigma.getCamera();
                 camera.animate(

@@ -3,7 +3,7 @@ import click
 import igraph as ig
 from os.path import exists
 import re
-from math import floor, ceil
+from math import floor
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -21,14 +21,20 @@ def process_graph():
   data = dict(json.load(file))
 
   edges = []
+  counted_ships = set()
 
   with click.progressbar(list(data.items()), label="Building graph...") as bar:
     for (key, value) in bar:
-      if float(value) < 0.2:
-        continue
-
       shipA = str(key).split('-')[0]
       shipB = str(key).split('-')[1]
+
+      # give each ship at least one edge
+      if (shipA in counted_ships) and (shipB in counted_ships):
+        if float(value) < 0.25:
+          continue
+
+      counted_ships.add(shipA)
+      counted_ships.add(shipB)
 
       try:
         g.vs.find(name=shipA)
@@ -107,17 +113,12 @@ def process_graph():
 
       scaledNodes[nodeId] = [scaledX, scaledY]
   
-  minX = floor(minX)
-  maxX = ceil(maxX)
-  minY = floor(minY)
-  maxY = ceil(maxY)
-  
   grid = []
-  with click.progressbar(range(0, maxY - minY, 1), label="Building node grid...") as bar:
+  with click.progressbar(range(0, 100, 1), label="Building node grid...") as bar:
     for y in bar:
       row = []
 
-      for x in range(0, maxX - minX, 1):
+      for x in range(0, 100, 1):
         row.append(False)
 
         for id in scaledNodes.keys():
@@ -135,9 +136,9 @@ def process_graph():
   xStreak = 0
   islandX = None
   islandY = None
-  with click.progressbar(range(len(grid)), label="Finding island location...") as bar:
+  with click.progressbar(range(len(grid) - islandH), label="Finding island location...") as bar:
     for y in bar:
-      for x in range(len(grid[y])):
+      for x in range(len(grid[y]) - islandW):
         if grid[y][x]:
           xStreak += 1
         
@@ -155,8 +156,8 @@ def process_graph():
               break
           
           if not bad:
-            islandX = x - islandW
-            islandY = y
+            islandX = x - islandW + (islandW / 2)
+            islandY = y + (islandH / 2)
         
         if islandX:
           break

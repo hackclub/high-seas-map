@@ -55,6 +55,7 @@ const LoadGraph = (props: {
           if (nodes[node][1] < minY) minY = nodes[node][1];
           if (nodes[node][1] > maxY) maxY = nodes[node][1];
 
+          console.log(node);
           const name = ships[node].fields.title;
           graph.addNode(node, {
             label: name,

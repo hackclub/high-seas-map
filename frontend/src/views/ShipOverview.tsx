@@ -32,6 +32,9 @@ export default function ShipOverview({
         .then((r) => r.text())
         .then((text) => {
           setReadme(text);
+        })
+        .catch(() => {
+          setReadme("No README available for this ship");
         });
     },
     [ships],
@@ -94,16 +97,12 @@ export default function ShipOverview({
         </div>
         <hr className="border-[1px] border-gray-400 my-2 w-full" />
       </div>
-      {readme === null ? (
-        <p>Loading...</p>
-      ) : (
-        <Markdown
-          remarkPlugins={[remarkGfm, remarkEmoji, remarkStripHtml]}
-          className="p-10 pt-0 prose prose-invert"
-        >
-          {readme}
-        </Markdown>
-      )}
+      <Markdown
+        remarkPlugins={[remarkGfm, remarkEmoji, remarkStripHtml]}
+        className="p-10 pt-0 prose prose-invert"
+      >
+        {readme ?? "Loading..."}
+      </Markdown>
     </div>
   );
 }
