@@ -4,6 +4,7 @@ import { SigmaContainer, useLoadGraph, useSigma } from "@react-sigma/core";
 import { createNodeImageProgram } from "@sigma/node-image";
 import "@react-sigma/core/lib/react-sigma.min.css";
 import { easings } from "sigma/utils";
+import IJS from "image-js";
 
 import ShipOverview from "./ShipOverview";
 import Search from "./Search";
@@ -31,11 +32,31 @@ const LoadGraph = (props: {
     const shipsReq = fetch("/data/filtered_ships.json").then((r) => r.json());
 
     Promise.all([nodesReq, shipsReq])
-      .then(([nodes, ships]) => {
+      .then(async ([nodes, ships]) => {
         let minX = 0;
         let maxX = 0;
         let minY = 0;
         let maxY = 0;
+
+        // const variants = ["ship1.png", "ship2.png"];
+        const variants = ["ship2.png"];
+        const angles = [];
+        for (let i = 0; i < 360; i += 360 / 8) {
+          angles.push(i);
+        }
+
+        const promises = [];
+        for (const variant of variants) {
+          const image = await IJS.load(variant);
+
+          for (const angle of angles) {
+            const rotated = image.rotate(angle);
+
+            promises.push(rotated.toDataURL());
+          }
+        }
+
+        const shipImgs = await Promise.all(promises);
 
         for (const node in nodes) {
           if (node === "HIGH_SEAS_ISLAND") {
@@ -55,15 +76,15 @@ const LoadGraph = (props: {
           if (nodes[node][1] < minY) minY = nodes[node][1];
           if (nodes[node][1] > maxY) maxY = nodes[node][1];
 
-          console.log(node);
           const name = ships[node].fields.title;
+          const img = shipImgs[Math.floor(Math.random() * shipImgs.length)];
           graph.addNode(node, {
             label: name,
             x: nodes[node][0],
             y: nodes[node][1],
             size: 15,
             color: "#00000000",
-            image: Math.random() > 0.5 ? "ship2.png" : "ship1.png",
+            image: img,
           });
         }
 
@@ -80,6 +101,16 @@ const LoadGraph = (props: {
           y: displayData.y,
           ratio: 0.4,
         });
+
+        // subtle motion
+        // setInterval(() => {
+        //   sigma.getGraph().forEachNode((node) => {
+        //     const data = sigma.getNodeDisplayData(node);
+        //     console.log(data!.x);
+
+        //     sigma.getGraph().setNodeAttribute(node, "x", data!.x + 0.0000001);
+        //   });
+        // }, 1000);
       });
   }, [loadGraph]);
 
