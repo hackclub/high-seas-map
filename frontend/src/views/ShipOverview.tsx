@@ -49,7 +49,9 @@ export default function ShipOverview({
     const clickNodeListener = (payload: SigmaNodeEventPayload) => {
       const shipId = payload.node;
 
-      updateShip(shipId);
+      if (shipId !== "HIGH_SEAS_ISLAND") {
+        updateShip(shipId);
+      }
     };
 
     const clickOffListener = () => {
