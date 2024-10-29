@@ -3,7 +3,6 @@ import click
 import igraph as ig
 from os.path import exists
 import re
-from math import floor, sqrt
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -11,11 +10,6 @@ def find_ship_name(ships, shipId):
       return ship["name"]
 
 def process_graph():
-  good_graph_found = False
-  while (not good_graph_found):
-    good_graph_found = gen_graph()
-
-def gen_graph():
   g = ig.Graph()
 
   if not exists("data/similarity_indices.json"):
@@ -28,6 +22,7 @@ def gen_graph():
   edges = []
   counted_ships = set()
 
+  g.add_vertex("HIGH_SEAS_ISLAND")
   with click.progressbar(list(data.items()), label="Building graph...") as bar:
     for (key, value) in bar:
       shipA = str(key).split('-')[0]
@@ -38,9 +33,6 @@ def gen_graph():
         if float(value) < 0.05:
           continue
 
-      counted_ships.add(shipA)
-      counted_ships.add(shipB)
-
       try:
         g.vs.find(name=shipA)
       except:
@@ -50,6 +42,14 @@ def gen_graph():
         g.vs.find(name=shipB)
       except:
         g.add_vertex(shipB)
+
+      if shipA not in counted_ships:
+        g.add_edge(shipA, "HIGH_SEAS_ISLAND", weight=0.1)
+      if shipB not in counted_ships:
+        g.add_edge(shipB, "HIGH_SEAS_ISLAND", weight=0.1)
+
+      counted_ships.add(shipA)
+      counted_ships.add(shipB)
       
       g.add_edge(shipA, shipB, weight=float(value))
       edges.append(f'{shipA}-{shipB}')
@@ -102,84 +102,7 @@ def gen_graph():
 
     nodes[key] = coords
 
-  aspect = (maxX - minX) / (maxY - minY)
-  # island placing
-  click.echo("Placing central island...")
-
-  scaledNodes = {}
-  with click.progressbar(nodes.keys(), label="Scaling node coordinates...") as bar:
-    for nodeId in bar:
-      node = nodes[nodeId]
-
-      percentX = (node[0] - minX) / (maxX - minX)
-      scaledX = aspect * 200 * percentX
-
-      percentY = (node[1] - minY) / (maxY - minY)
-      scaledY = (1 / aspect) * 200 * percentY
-
-      scaledNodes[nodeId] = [scaledX, scaledY]
-  
-  grid = []
-  with click.progressbar(range(0, 200, 1), label="Building node grid...") as bar:
-    for y in bar:
-      row = []
-
-      for x in range(0, 200, 1):
-        row.append(False)
-
-        for id in scaledNodes.keys():
-          n = scaledNodes[id]
-
-          if floor(n[0]) == x and floor(n[1]) == y:
-            row[x] = True
-            break;
-      
-      grid.append(row)
-  
-  islandW = 25
-  islandH = 20
-
-  xStreak = 0
-  islandLocations = []
-  with click.progressbar(range(len(grid) - islandH), label="Finding island location...") as bar:
-    for y in bar:
-      for x in range(len(grid[y]) - islandW):
-        if grid[y][x]:
-          xStreak += 1
-        
-        if xStreak == islandW:
-          bad = False
-
-          for checkY in range(y+1, y + islandH + 1):
-            for checkX in range(x, x + islandW + 1):
-              if grid[checkY][checkX]:
-                bad = True
-                xStreak = 0
-                break
-
-            if bad:
-              break
-          
-          if not bad:
-            islandLocations.append([x - (islandW / 2), y + (islandH / 2)])
-
-  if len(islandLocations) == 0:
-    click.echo("No island location found for graph, regenerating...\n")
-    return False
-        
-  closestLocation = [100, 100]
-  closestDistance = sqrt(2 * (100 ** 2))
-
-  for location in islandLocations:
-    distance = sqrt(((location[0] - 100) ** 2) + ((location[1] - 100) ** 2))
-
-    if distance < closestDistance:
-      closestDistance = distance
-      closestLocation = location
-
-  scaledNodes["HIGH_SEAS_ISLAND"] = closestLocation
-
-  nodes_json = json.dumps(scaledNodes)
+  nodes_json = json.dumps(nodes)
   nodes_file = open('../frontend/public/data/nodes.json', 'w', encoding='utf-8')
   nodes_file.write(nodes_json)
 
