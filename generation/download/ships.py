@@ -10,8 +10,7 @@ def download_ships():
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
   click.echo("Downloading ships from Airtable...")
-  # all_ships = ships_table.all(formula="{hidden} = FALSE()")
-  all_ships = ships_table.all(fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url"])
+  all_ships = ships_table.all(formula="AND({hidden} = FALSE(), {project_source} != \"test\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url"])
 
   fixed_ships = []
   for ship in all_ships:
