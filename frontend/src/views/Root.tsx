@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Graph from "graphology";
 import { SigmaContainer, useLoadGraph, useSigma } from "@react-sigma/core";
+import { useWorkerLayoutForce } from "@react-sigma/layout-force";
 import { createNodeImageProgram } from "@sigma/node-image";
 import "@react-sigma/core/lib/react-sigma.min.css";
 import { easings } from "sigma/utils";
@@ -101,16 +102,6 @@ const LoadGraph = (props: {
           y: displayData.y,
           ratio: 0.4,
         });
-
-        // subtle motion
-        // setInterval(() => {
-        //   sigma.getGraph().forEachNode((node) => {
-        //     const data = sigma.getNodeDisplayData(node);
-        //     console.log(data!.x);
-
-        //     sigma.getGraph().setNodeAttribute(node, "x", data!.x + 0.0000001);
-        //   });
-        // }, 1000);
       });
   }, [loadGraph]);
 
@@ -192,6 +183,27 @@ const KeyboardControl = (props: { typing: boolean }) => {
   return null;
 };
 
+const ForceLayout = () => {
+  const { start, kill } = useWorkerLayoutForce({
+    isNodeFixed: () => true,
+    settings: {
+      attraction: 10,
+    },
+  });
+
+  useEffect(() => {
+    // start FA2
+    start();
+
+    // Kill FA2 on unmount
+    return () => {
+      kill();
+    };
+  }, [start, kill]);
+
+  return null;
+};
+
 export default function Root() {
   const [ships, setShips] = useState<ShipsData | null>(null);
   const [selectedShip, setSelectedShip] = useState<string>();
@@ -224,6 +236,7 @@ export default function Root() {
             maxCameraRatio: 0.4,
           }}
         >
+          <ForceLayout />
           <LoadGraph setShips={setShips} />
           <KeyboardControl typing={typing} />
           <ShipOverview selectedShip={selectedShip} />
