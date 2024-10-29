@@ -114,6 +114,15 @@ const LoadGraph = (props: {
       });
   }, [loadGraph]);
 
+  if (sigma.getGraph().nodes().length === 0) {
+    return (
+      <div className="h-screen w-screen fixed top-0 left-0 flex justify-center items-center">
+        <p className="text-2xl font-bold text-center text-white">
+          Loading map...
+        </p>
+      </div>
+    );
+  }
   return null;
 };
 

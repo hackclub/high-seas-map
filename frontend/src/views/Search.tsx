@@ -26,6 +26,10 @@ export default function Search({
     setResults(Object.fromEntries(res));
   }, [query, ships]);
 
+  if (sigma.getGraph().nodes().length === 0) {
+    return null;
+  }
+
   return (
     <div className="fixed top-5 left-5 w-1/5">
       <div
