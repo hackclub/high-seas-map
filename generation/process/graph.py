@@ -136,8 +136,8 @@ def gen_graph():
       
       grid.append(row)
   
-  islandW = 17
-  islandH = 17
+  islandW = 25
+  islandH = 20
 
   xStreak = 0
   islandLocations = []
@@ -161,7 +161,7 @@ def gen_graph():
               break
           
           if not bad:
-            islandLocations.append([x - islandW + (islandW / 2), y + (islandH / 2)])
+            islandLocations.append([x - (islandW / 2), y + (islandH / 2)])
 
   if len(islandLocations) == 0:
     click.echo("No island location found for graph, regenerating...\n")
