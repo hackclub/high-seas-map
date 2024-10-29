@@ -3,7 +3,7 @@ import click
 import igraph as ig
 from os.path import exists
 import re
-from math import floor
+from math import floor, sqrt
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -11,6 +11,11 @@ def find_ship_name(ships, shipId):
       return ship["name"]
 
 def process_graph():
+  good_graph_found = False
+  while (not good_graph_found):
+    good_graph_found = gen_graph()
+
+def gen_graph():
   g = ig.Graph()
 
   if not exists("data/similarity_indices.json"):
@@ -135,8 +140,7 @@ def process_graph():
   islandH = 17
 
   xStreak = 0
-  islandX = None
-  islandY = None
+  islandLocations = []
   with click.progressbar(range(len(grid) - islandH), label="Finding island location...") as bar:
     for y in bar:
       for x in range(len(grid[y]) - islandW):
@@ -157,16 +161,23 @@ def process_graph():
               break
           
           if not bad:
-            islandX = x - islandW + (islandW / 2)
-            islandY = y + (islandH / 2)
-        
-        if islandX:
-          break
-      
-      if islandX:
-        break
+            islandLocations.append([x - islandW + (islandW / 2), y + (islandH / 2)])
 
-  scaledNodes["HIGH_SEAS_ISLAND"] = [islandX, islandY]
+  if len(islandLocations) == 0:
+    click.echo("No island location found for graph, regenerating...\n")
+    return False
+        
+  closestLocation = [100, 100]
+  closestDistance = sqrt(2 * (100 ** 2))
+
+  for location in islandLocations:
+    distance = sqrt(((location[0] - 100) ** 2) + ((location[1] - 100) ** 2))
+
+    if distance < closestDistance:
+      closestDistance = distance
+      closestLocation = location
+
+  scaledNodes["HIGH_SEAS_ISLAND"] = closestLocation
 
   nodes_json = json.dumps(scaledNodes)
   nodes_file = open('../frontend/public/data/nodes.json', 'w', encoding='utf-8')
@@ -175,3 +186,5 @@ def process_graph():
   clusters_json = json.dumps(pretty_clusters)
   clusters_file = open('data/clusters.json', 'w', encoding='utf-8')
   clusters_file.write(clusters_json)
+
+  return True
