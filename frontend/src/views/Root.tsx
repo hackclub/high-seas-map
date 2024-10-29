@@ -192,10 +192,8 @@ const ForceLayout = () => {
   });
 
   useEffect(() => {
-    // start FA2
     start();
 
-    // Kill FA2 on unmount
     return () => {
       kill();
     };
@@ -216,7 +214,6 @@ export default function Root() {
           style={{
             height: "100vh",
             width: "100vw",
-            // backgroundColor: "#10d5eb",
             backgroundImage: "url(/seabkgr.svg)",
             backgroundSize: "cover",
           }}
