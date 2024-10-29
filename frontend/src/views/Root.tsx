@@ -185,9 +185,11 @@ const KeyboardControl = (props: { typing: boolean }) => {
 
 const ForceLayout = () => {
   const { start, kill } = useWorkerLayoutForce({
-    isNodeFixed: () => true,
     settings: {
       attraction: 10,
+      repulsion: 10,
+      gravity: 0,
+      maxMove: 0.0025,
     },
   });
 
