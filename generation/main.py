@@ -3,12 +3,10 @@ from dotenv import load_dotenv
 
 from download.ships import download_ships
 from process.similarity import process_similarity
-from process.keywords import process_keywords
 from process.graph import process_graph
 from process.model import process_model
 from process.clusters import process_clusters
-from process.model_keywords import process_model_keywords
-from process.combined_keywords import process_combined_keywords
+from process.labels import process_labels
 from all import run_all
 
 load_dotenv()
@@ -32,34 +30,26 @@ def ships():
 @root.group()
 def process():
 	pass
-
-@process.command()
-def similarity():
-	process_similarity()
-
-@process.command()
-def keywords():
-	process_keywords()
-	
-@process.command()
-def graph():
-	process_graph()
 	
 @process.command()
 def model():
 	process_model()
 	
 @process.command()
+def labels():
+	process_labels()
+	
+@process.command()
+def similarity():
+	process_similarity()
+	
+@process.command()
+def graph():
+	process_graph()
+	
+@process.command()
 def clusters():
 	process_clusters()
-	
-@process.command()
-def model_keywords():
-	process_model_keywords()
-	
-@process.command()
-def combined_keywords():
-	process_combined_keywords()
 
 @root.group()
 def query():

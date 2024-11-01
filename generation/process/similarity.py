@@ -3,23 +3,23 @@ from os.path import exists
 import click
 
 def process_similarity():
-	if not exists("data/keywords.json"):
-		click.echo("Keywords not generated. Please run `python main.py process keywords` first.")
+	if not exists("data/labels.json"):
+		click.echo("Labels not generated. Please run `python main.py process labels` first.")
 		return
 
-	keywordsFile = open('data/keywords.json', 'r', encoding='utf-8')
-	keywords = json.loads(keywordsFile.read())
+	labels_file = open('data/keywords.json', 'r', encoding='utf-8')
+	labels = json.loads(labels_file.read())
 
 	indices = {}
 
-	with click.progressbar(keywords, label="Generating similarity indices...") as bar:	
+	with click.progressbar(labels, label="Generating similarity indices...") as bar:	
 		for shipA in bar:
-			for shipB in keywords:
+			for shipB in labels:
 				if shipA == shipB:
 					continue
 
-				intersection = set(keywords[shipA]).intersection(set(keywords[shipB]))
-				union = set(keywords[shipA]).union(set(keywords[shipB]))
+				intersection = set(labels[shipA]).intersection(set(labels[shipB]))
+				union = set(labels[shipA]).union(set(labels[shipB]))
 
 				jaccard = len(intersection) / len(union)
 

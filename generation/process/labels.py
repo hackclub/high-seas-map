@@ -1,12 +1,12 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
 import requests
 import click
 from os.path import exists
 import json
 from pickle import load
 import os
+import spacy
 
-def process_model_keywords():
+def process_labels():
   if not exists("data/model.pkl"):
     click.echo("Model not trained. Please run `python main.py process model` first.")
     return
@@ -42,7 +42,11 @@ def process_model_keywords():
   shipsFile = open('data/ships.json', 'r', encoding='utf-8')
   ships = json.loads(shipsFile.read())
 
-  keywords = {}
+  # nlp = spacy.load("en_core_web_lg")
+  # Use in local dev
+  nlp = spacy.load("en_core_web_sm")
+
+  labels = {}
   filtered_ships = {}
 
   with click.progressbar(ships, label="Generating keywords...") as bar:
@@ -59,16 +63,22 @@ def process_model_keywords():
 
       tags = list(filter(lambda t: t != "", predict_category(readme_text.text)[0]))
 
+      doc = nlp(readme_text.text)
+
+      doc_tags = list(map(lambda e: e.text, doc.ents))
+
+      tags.extend(doc_tags)
+
       if len(tags) == 0:
         click.echo(f"Skipping ship record {ship['id']} since it does not have any tags")
         continue
 
-      keywords[ship['id']] = tags
+      labels[ship['id']] = tags
       filtered_ships[ship['id']] = ship
 
-  keywords_json = json.dumps(keywords)
-  keywords_file = open('data/keywords.json', 'w', encoding='utf-8')
-  keywords_file.write(keywords_json)
+  labels_json = json.dumps(labels)
+  labels_file = open('data/labels.json', 'w', encoding='utf-8')
+  labels_file.write(labels_json)
 
   if not os.path.exists("../frontend/public/data"):
     os.mkdir("../frontend/public/data")
