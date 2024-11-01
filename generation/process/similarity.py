@@ -7,7 +7,7 @@ def process_similarity():
 		click.echo("Labels not generated. Please run `python main.py process labels` first.")
 		return
 
-	labels_file = open('data/keywords.json', 'r', encoding='utf-8')
+	labels_file = open('data/labels.json', 'r', encoding='utf-8')
 	labels = json.loads(labels_file.read())
 
 	indices = {}
