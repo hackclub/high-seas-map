@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 from download.ships import download_ships
 from process.similarity import process_similarity
+from process.ai_similarity import process_ai_similarity
 from process.graph import process_graph
 from process.model import process_model
 from process.clusters import process_clusters
@@ -42,6 +43,10 @@ def labels():
 @process.command()
 def similarity():
 	process_similarity()
+
+@process.command()
+def ai_similarity():
+	process_ai_similarity()
 	
 @process.command()
 def graph():
