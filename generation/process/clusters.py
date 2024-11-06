@@ -31,7 +31,7 @@ def process_clusters():
         messages=[
           {
             "role": "user",
-            "content": f"Come up with a sailing/pirate-themed name that also fits the type of projects in the category for a category of projects with the following names: {", ".join(titles)}. Respond ONLY with one category name."
+            "content": f"Come up with a sailing/pirate-themed name that also fits the type of projects in the category for a category of projects with the following names: {', '.join(titles)}. Respond ONLY with one category name."
           }
         ],
         model="gpt-3.5-turbo"
