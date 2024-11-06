@@ -28,7 +28,7 @@ def process_model():
           contents.append("")
           continue
 
-        contents.append(f"{row["title"]}\n{readme_text_res.text}")
+        contents.append(f"{row['title']}\n{readme_text_res.text}")
     
     contents_file = open('data/sample_contents.json', 'w', encoding='utf-8')
     contents_file.write(json.dumps(contents))
