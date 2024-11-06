@@ -16,7 +16,7 @@ def process_ai_similarity():
   indices = {}
   filtered_ships = {}
 
-  reranker = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=True)
+  reranker = FlagReranker('BAAI/bge-reranker-v2-gemma', use_fp16=True)
 
   with click.progressbar(ships, label="Generating similarity indices...") as bar:	
     for shipA in bar:
