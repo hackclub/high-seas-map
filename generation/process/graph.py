@@ -30,7 +30,7 @@ def process_graph():
 
       # give each ship at least one edge
       if (shipA in counted_ships) and (shipB in counted_ships):
-        if float(value) < 0.05:
+        if float(value) < 0.2:
           continue
 
       try:

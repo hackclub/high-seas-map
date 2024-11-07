@@ -2,7 +2,8 @@ import json
 from os.path import exists
 import click
 import requests
-from FlagEmbedding import FlagReranker
+from sentence_transformers import SentenceTransformer
+
 import os
 
 def process_ai_similarity():
@@ -16,7 +17,7 @@ def process_ai_similarity():
   indices = {}
   filtered_ships = {}
 
-  reranker = FlagReranker('BAAI/bge-reranker-base', use_fp16=True)
+  model = SentenceTransformer("all-mpnet-base-v2")
 
   with click.progressbar(ships, label="Generating similarity indices...") as bar:	
     for shipA in bar:
@@ -44,9 +45,12 @@ def process_ai_similarity():
           click.echo(f"Skipping ship record {shipB['id']} as it does not have a valid README")
           continue
 
-        similarity = reranker.compute_score([readme_text_a.text, readme_text_b.text], normalize=True);
+        embeddings_a = model.encode(readme_text_a.text);
+        embeddings_b = model.encode(readme_text_b.text);
 
-        indices[shipA['id'] + "-" + shipB['id']] = similarity
+        similarity = model.similarity(embeddings_a, embeddings_b);
+
+        indices[shipA['id'] + "-" + shipB['id']] = similarity[0][0]
 
       filtered_ships[shipA['id']] = shipA
 
