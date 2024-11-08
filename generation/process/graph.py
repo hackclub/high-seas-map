@@ -29,7 +29,7 @@ def process_graph():
       shipB = str(key).split('-')[1]
 
       # give each ship at least one edge
-      if (shipA in counted_ships) and (shipB in counted_ships):
+      if ((shipA in counted_ships) and (shipB in counted_ships)) or value == 0:
         if float(value) < 0.2:
           continue
 
@@ -44,9 +44,9 @@ def process_graph():
         g.add_vertex(shipB)
 
       if shipA not in counted_ships:
-        g.add_edge(shipA, "HIGH_SEAS_ISLAND", weight=0.1)
+        g.add_edge(shipA, "HIGH_SEAS_ISLAND", weight=0.01)
       if shipB not in counted_ships:
-        g.add_edge(shipB, "HIGH_SEAS_ISLAND", weight=0.1)
+        g.add_edge(shipB, "HIGH_SEAS_ISLAND", weight=0.01)
 
       counted_ships.add(shipA)
       counted_ships.add(shipB)
@@ -56,9 +56,9 @@ def process_graph():
 
   click.echo("Plotting graph...")
 
-  clustered = g.community_leiden(weights=g.es["weight"], resolution=5, n_iterations=20)
-  # layout = g.layout("drl")
-  layout = g.layout("graphopt", node_charge=0.045, node_mass=0.5, spring_length=1, niter=200)
+  clustered = g.community_leiden(weights="weight", resolution=1, n_iterations=50)
+  layout = g.layout("kk", weights="weight")
+  # layout = g.layout("graphopt", node_charge=0.045, node_mass=0.5, spring_length=1, niter=200)
 
   cplot = ig.plot(clustered, None, layout=layout, bbox=(100, 100))
   objstr = re.split(r'\[\s*\d\] ', str(cplot._objects[0][0]))

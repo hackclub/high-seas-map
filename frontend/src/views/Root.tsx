@@ -189,7 +189,7 @@ const ForceLayout = () => {
       attraction: 10,
       repulsion: 10.5,
       gravity: 0,
-      maxMove: 0.01,
+      maxMove: 0.0001,
     },
   });
 

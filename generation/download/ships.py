@@ -10,9 +10,10 @@ def download_ships():
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
   click.echo("Downloading ships from Airtable...")
-  all_ships = ships_table.all(formula="AND({hidden} = FALSE(), {project_source} = \"high_seas\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url"])
+  all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url"])
 
   fixed_ships = []
+  readme_urls = []
   for ship in all_ships:
     readme_url = str(ship.get("fields").get("readme_url"))
 
@@ -37,6 +38,12 @@ def download_ships():
         # File url
         if path[3] == "blob":
           readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{path[4]}/README.md"
+
+    if readme_url in readme_urls:
+      click.echo(f"Skipping ship record {ship['id']} since it is already included")
+      continue
+
+    readme_urls.append(readme_url)
 
     ship_dict = dict(ship)
     ship_dict["fields"]["readme_url"] = readme_url
