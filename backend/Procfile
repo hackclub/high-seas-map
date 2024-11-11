@@ -1,1 +1,1 @@
-web: PYTHONUNBUFFERED=TRUE gunicorn -w 2 -k uvicorn.workers.UvicornWorker main:app
+web: PYTHONUNBUFFERED=TRUE gunicorn -w 2 -k uvicorn.workers.UvicornWorker --config config.py main:app

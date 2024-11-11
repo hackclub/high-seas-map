@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from apscheduler.schedulers.background import BackgroundScheduler
+from threading import Thread
 import json
 import os
 
@@ -28,6 +30,19 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"]
 )
+
+def start_scheduler():
+  print("scheduler starting")
+  scheduler = BackgroundScheduler()
+  scheduler.add_job(run_all, 'interval', hours=24)
+  scheduler.start()
+
+  if not os.path.exists("data/nodes.json"):
+    run_all()
+
+def on_starting(server):
+  p = Thread(target=start_scheduler)
+  p.start()
 
 @app.get("/ships")
 def ships():
