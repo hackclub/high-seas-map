@@ -1,5 +1,4 @@
 import json
-import click
 from pyairtable import Api
 import os
 from urllib.parse import urlparse
@@ -9,7 +8,7 @@ def download_ships():
   api = Api(os.environ['AIRTABLE_API_KEY'])
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
-  click.echo("Downloading ships from Airtable...")
+  print("Downloading ships from Airtable...")
   all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url"])
 
   fixed_ships = []
@@ -18,7 +17,7 @@ def download_ships():
     readme_url = str(ship.get("fields").get("readme_url"))
 
     if readme_url == "None":
-      click.echo(f"Skipping ship record {ship['id']} since it does not have a README URL")
+      print(f"Skipping ship record {ship['id']} since it does not have a README URL")
       continue
 
     parsed_url = urlparse(readme_url)
@@ -40,7 +39,7 @@ def download_ships():
           readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{path[4]}/README.md"
 
     if readme_url in readme_urls:
-      click.echo(f"Skipping ship record {ship['id']} since it is already included")
+      print(f"Skipping ship record {ship['id']} since it is already included")
       continue
 
     readme_urls.append(readme_url)

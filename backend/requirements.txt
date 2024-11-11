@@ -1,0 +1,9 @@
+pyairtable==2.3.3
+python-dotenv==1.0.1
+python_igraph==0.11.6
+Requests==2.32.3
+pycairo==1.27.0
+sentence-transformers==3.2.1
+fastapi[standard]==0.115.4
+gunicorn==23.0.0
+uvicorn==0.32.0
