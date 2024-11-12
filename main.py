@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI, Response, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -22,7 +21,7 @@ api = FastAPI()
 app = FastAPI()
 
 app.mount("/api", api)
-app.mount("/", StaticFiles(directory="frontend/dist", html=True))
+app.mount("/", StaticFiles(directory="dist", html=True))
 
 def start_scheduler():
   print("scheduler starting")
