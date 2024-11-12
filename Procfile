@@ -1,1 +1,1 @@
-web: ./start.sh
+web: PYTHONUNBUFFERED=TRUE gunicorn -w 2 -k uvicorn.workers.UvicornWorker --config config.py main:app
