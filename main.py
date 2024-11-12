@@ -15,7 +15,7 @@ from process.graph import process_graph
 class Auth(BaseModel):
   token: str
 
-load_dotenv()
+# load_dotenv()
 
 api = FastAPI()
 app = FastAPI()
