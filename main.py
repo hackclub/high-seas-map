@@ -21,7 +21,7 @@ api = FastAPI()
 app = FastAPI()
 
 app.mount("/api", api)
-app.mount("/", StaticFiles(directory="dist", html=True))
+# app.mount("/", StaticFiles(directory="dist", html=True))s
 
 def start_scheduler():
   print("scheduler starting")
