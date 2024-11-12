@@ -29,12 +29,8 @@ const LoadGraph = (props: {
   useEffect(() => {
     const graph = new Graph();
 
-    const nodesReq = fetch(`${import.meta.env.VITE_BACKEND_URL}/nodes`).then(
-      (r) => r.json(),
-    );
-    const shipsReq = fetch(`${import.meta.env.VITE_BACKEND_URL}/ships`).then(
-      (r) => r.json(),
-    );
+    const nodesReq = fetch(`/api/nodes`).then((r) => r.json());
+    const shipsReq = fetch(`/api/ships`).then((r) => r.json());
 
     Promise.all([nodesReq, shipsReq])
       .then(async ([nodes, ships]) => {

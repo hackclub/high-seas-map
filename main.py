@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread
@@ -17,19 +18,11 @@ class Auth(BaseModel):
 
 load_dotenv()
 
+api = FastAPI()
 app = FastAPI()
 
-cors_origins = [
-  "http://localhost:3000",
-  "https://high-seas-map.vercel.app"
-]
-
-app.add_middleware(
-  CORSMiddleware,
-  allow_origins=cors_origins,
-  allow_methods=["*"],
-  allow_headers=["*"]
-)
+app.mount("/api", api)
+app.mount("/", StaticFiles(directory="frontend/dist", html=True))
 
 def start_scheduler():
   print("scheduler starting")
@@ -44,7 +37,7 @@ def on_starting(server):
   p = Thread(target=start_scheduler)
   p.start()
 
-@app.get("/ships")
+@api.get("/ships")
 def ships():
   if not os.path.exists("data/filtered_ships.json"):
     return None
@@ -52,7 +45,7 @@ def ships():
   ships_file = open("data/filtered_ships.json", "r")
   return json.load(ships_file)
 
-@app.get("/nodes")
+@api.get("/nodes")
 def ships():
   if not os.path.exists("data/nodes.json"):
     return None
@@ -60,7 +53,7 @@ def ships():
   ships_file = open("data/nodes.json", "r")
   return json.load(ships_file)
 
-@app.post("/refresh/all")
+@api.post("/refresh/all")
 def refresh_all(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
@@ -69,7 +62,7 @@ def refresh_all(auth: Auth, response: Response):
   run_all()
   return None
 
-@app.post("/refresh/ships")
+@api.post("/refresh/ships")
 def refresh_all(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
@@ -78,7 +71,7 @@ def refresh_all(auth: Auth, response: Response):
   download_ships()
   return None
 
-@app.post("/refresh/similarity")
+@api.post("/refresh/similarity")
 def refresh_all(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
@@ -87,7 +80,7 @@ def refresh_all(auth: Auth, response: Response):
   process_similarity()
   return None
 
-@app.post("/refresh/graph")
+@api.post("/refresh/graph")
 def refresh_all(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
