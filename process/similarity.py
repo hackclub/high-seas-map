@@ -1,7 +1,7 @@
 import json
 from os.path import exists
 import requests
-from sentence_transformers import SentenceTransformer
+import spacy
 
 def process_similarity():
   if not exists("data/ships.json"):
@@ -14,8 +14,7 @@ def process_similarity():
   indices = {}
   filtered_ships = {}
 
-  model = SentenceTransformer("all-mpnet-base-v2", similarity_fn_name="dot")
-
+  nlp = spacy.load("en_core_web_md")
   normalized_list = []
   id_list = []
   print("Downloading & normalizing ship READMEs...")
@@ -31,22 +30,21 @@ def process_similarity():
       continue
 
     normalized = readme_text.text[0:5000]
-    embedding = model.encode(normalized)
+    embedding = nlp(normalized)
 
     normalized_list.append(embedding)
     id_list.append(ship['id'])
     filtered_ships[ship['id']] = ship
 
   print("Calculating similarity...")
-  matrix = model.similarity(normalized_list, normalized_list)
 
   print("Building similarity pairs...")
   indices = {}
-  for x in range(len(matrix)):
-    for y in range(len(matrix[x])):
+  for x in range(len(id_list)):
+    for y in range(len(id_list)):
       if x == y:
         continue
-      value = matrix[x][y].item()
+      value = normalized_list[x].similarity(normalized_list[y])
       indices[f"{id_list[x]}-{id_list[y]}"] = max(0, value)
 
   similarityIndicesFile = open('data/similarity_indices.json', 'w', encoding='utf-8')
