@@ -228,7 +228,7 @@ export default function Root() {
               color: "white",
             },
             labelWeight: "800",
-            labelDensity: 0.1,
+            labelDensity: 0,
             labelSize: 11,
             defaultDrawNodeHover: drawHover,
             minCameraRatio: 0.01,
