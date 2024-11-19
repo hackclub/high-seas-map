@@ -79,6 +79,7 @@ const LoadGraph = (props: {
 
           const name = ships[node].fields.title;
           const img = shipImgs[Math.floor(Math.random() * shipImgs.length)];
+
           graph.addNode(node, {
             label: name,
             x: nodes[node][0],
@@ -86,6 +87,9 @@ const LoadGraph = (props: {
             size: 15,
             color: "#00000000",
             image: img,
+            hours: ships[node].fields.hours,
+            screenshotUrl: ships[node].fields.screenshot_url,
+            id: node,
           });
         }
 
@@ -229,7 +233,7 @@ export default function Root() {
             },
             labelWeight: "800",
             labelDensity: 0,
-            labelSize: 11,
+            labelSize: 14,
             defaultDrawNodeHover: drawHover,
             minCameraRatio: 0.01,
             maxCameraRatio: 0.4,
