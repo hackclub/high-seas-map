@@ -5,7 +5,6 @@ import { useWorkerLayoutForce } from "@react-sigma/layout-force";
 import { createNodeImageProgram } from "@sigma/node-image";
 import "@react-sigma/core/lib/react-sigma.min.css";
 import { easings } from "sigma/utils";
-import IJS from "image-js";
 
 import ShipOverview from "./ShipOverview";
 import Search from "./Search";
@@ -39,25 +38,18 @@ const LoadGraph = (props: {
         let minY = 0;
         let maxY = 0;
 
-        // const variants = ["ship1.png", "ship2.png"];
-        const variants = ["ship2.png"];
+        const variants = ["ship1", "ship2"];
         const angles = [];
         for (let i = 0; i < 360; i += 360 / 8) {
           angles.push(i);
         }
 
-        const promises = [];
+        const shipImgs = [];
         for (const variant of variants) {
-          const image = await IJS.load(variant);
-
           for (const angle of angles) {
-            const rotated = image.rotate(angle);
-
-            promises.push(rotated.toDataURL());
+            shipImgs.push(`ships/${variant}-${angle}.png`);
           }
         }
-
-        const shipImgs = await Promise.all(promises);
 
         for (const node in nodes) {
           if (node === "HIGH_SEAS_ISLAND") {
@@ -67,7 +59,7 @@ const LoadGraph = (props: {
               y: nodes[node][1],
               size: 75,
               color: "#00000000",
-              image: "island.png",
+              image: "harbor.svg",
             });
             continue;
           }
