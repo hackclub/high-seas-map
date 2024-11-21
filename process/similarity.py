@@ -29,6 +29,10 @@ def process_similarity():
       print(f"Skipping ship record {ship['id']} as it does not have a valid README")
       continue
 
+    if readme_text.text == "":
+      print(f"Skipping ship record {ship['id']} as it has an empty README")
+      continue
+
     normalized = readme_text.text[0:5000]
     embedding = nlp(normalized)
 

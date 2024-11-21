@@ -8,3 +8,4 @@ gunicorn==23.0.0
 uvicorn==0.32.0
 spacy==3.7.6
 apscheduler==3.10.4
+slack_sdk==3.33.4

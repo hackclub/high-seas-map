@@ -43,7 +43,7 @@ export function drawHover(
   const hours = data.hours.toFixed(1);
 
   const label = data.label;
-  const hoursText = `Made in ${hours} hour${hours === 1 ? "" : "s"}`;
+  const hoursText = `Made in ${hours} hour${hours === 1 ? "" : "s"} by @${data.username}`;
 
   // Then we draw the label background
   context.beginPath();

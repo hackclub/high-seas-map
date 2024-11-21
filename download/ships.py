@@ -3,13 +3,16 @@ from pyairtable import Api
 import os
 from urllib.parse import urlparse
 import requests
+from slack_sdk import WebClient
 
 def download_ships():
   api = Api(os.environ['AIRTABLE_API_KEY'])
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
+  slack = WebClient(token=os.environ["SLACK_API_KEY"])
+
   print("Downloading ships from Airtable...")
-  all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url", "hours"])
+  all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url", "hours", "entrant__slack_id"])
 
   fixed_ships = []
   readme_urls = []
@@ -46,6 +49,10 @@ def download_ships():
 
     ship_dict = dict(ship)
     ship_dict["fields"]["readme_url"] = readme_url
+
+    user_info = slack.users_info(user=str(ship.get("fields").get("entrant__slack_id")[0]))
+    ship_dict["fields"]["slack_username"] = user_info["user"]["name"]
+
     fixed_ships.append(ship_dict)
 
   shipsJson = json.dumps(fixed_ships)

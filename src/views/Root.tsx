@@ -81,6 +81,7 @@ const LoadGraph = (props: {
             image: img,
             hours: ships[node].fields.hours,
             screenshotUrl: ships[node].fields.screenshot_url,
+            username: ships[node].fields.slack_username,
             id: node,
           });
         }

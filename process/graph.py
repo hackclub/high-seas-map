@@ -55,7 +55,7 @@ def process_graph():
 
   print("Plotting graph...")
 
-  clustered = g.community_leiden(weights="weight", resolution=1, n_iterations=50)
+  clustered = g.community_multilevel(weights="weight", return_levels=False)
   layout = g.layout("kk", weights="weight")
   # layout = g.layout("graphopt", node_charge=0.045, node_mass=0.5, spring_length=1, niter=200)
 
