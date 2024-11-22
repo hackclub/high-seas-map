@@ -4,12 +4,17 @@ import os
 from urllib.parse import urlparse
 import requests
 from slack_sdk import WebClient
+from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 
 def download_ships():
   api = Api(os.environ['AIRTABLE_API_KEY'])
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
   slack = WebClient(token=os.environ["SLACK_API_KEY"])
+
+  rate_limit_handler = RateLimitErrorRetryHandler(max_retry_count=1)
+
+  slack.retry_handlers.append(rate_limit_handler)
 
   print("Downloading ships from Airtable...")
   all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url", "hours", "entrant__slack_id"])
