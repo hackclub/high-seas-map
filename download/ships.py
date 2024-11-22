@@ -14,6 +14,9 @@ def download_ships():
   print("Downloading ships from Airtable...")
   all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=["identifier", "title", "readme_url", "repo_url", "screenshot_url", "hours", "entrant__slack_id"])
 
+  if os.environ["DEV"] == "TRUE":
+    all_ships = all_ships[0:100]
+
   fixed_ships = []
   readme_urls = []
   for ship in all_ships:

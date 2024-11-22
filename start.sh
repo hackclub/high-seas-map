@@ -1,3 +1,3 @@
 #!/bin/sh
 python -m spacy download en_core_web_md
-gunicorn -w 2 -k uvicorn.workers.UvicornWorker --config config.py main:app
+PYTHONUNBUFFERED=1 gunicorn -w 2 -k uvicorn.workers.UvicornWorker --config config.py -t 600 main:app
