@@ -18,7 +18,7 @@ def gen_graph():
   g = ig.Graph()
 
   if not exists("data/similarity_indices.json"):
-    print("Similarities not processed. Please run `python main.py process similarity` first.")
+    print("Similarities not processed.")
     return
 
   file = open("data/similarity_indices.json", "r", encoding="utf-8")

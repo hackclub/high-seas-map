@@ -5,7 +5,7 @@ import spacy
 
 def process_similarity():
   if not exists("data/ships.json"):
-    print("Ships not downloaded. Please run `python main.py download ships` first.")
+    print("Ships not downloaded.")
     return
 
   shipsFile = open('data/ships.json', 'r', encoding='utf-8')
