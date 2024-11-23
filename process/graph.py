@@ -57,7 +57,7 @@ def gen_graph():
 
   print("Plotting graph...")
   
-  np.random.seed(2)
+  # np.random.seed(4)
   seed = np.random.rand(len(g.vs), 2)
 
   mincoords = []
@@ -123,8 +123,8 @@ def gen_graph():
     
     grid.append(row)
   
-  islandW = 4
-  islandH = 4
+  islandW = 13
+  islandH = 13
 
   xStreak = 0
   islandLocations = []
