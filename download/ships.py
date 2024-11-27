@@ -1,10 +1,10 @@
-import json
 from pyairtable import Api
 import os
 from urllib.parse import urlparse
 import requests
 from slack_sdk import WebClient
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
+import psycopg
 
 def download_ships():
   api = Api(os.environ['AIRTABLE_API_KEY'])
@@ -63,11 +63,23 @@ def download_ships():
 
     fixed_ships.append(ship_dict)
 
-  shipsJson = json.dumps(fixed_ships)
+  with psycopg.connect(os.environ["DB_URI"]) as conn:
+    with conn.cursor() as cur:
+      cur.execute("DELETE FROM ships")
 
-  if not os.path.exists("data"):
-    os.mkdir("data")
-  
-  file = open('data/ships.json', 'w', encoding='utf-8')
-  file.write(shipsJson)
+      args = []
+      for ship in fixed_ships:
+        args.append((ship["id"], ship["fields"]["identifier"], ship["fields"]["readme_url"], ship["fields"]["repo_url"],
+                          ship["fields"]["title"], ship["fields"]["screenshot_url"], ship["fields"]["hours"],
+                          ship["fields"]["entrant__slack_id"][0], ship["fields"]["slack_username"]))
+      
+      cur.execute("INSERT INTO ships (id, filtered) VALUES ('HIGH_SEAS_ISLAND', true)")
+      cur.executemany("""
+                    INSERT INTO ships (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, args)
+      
+    conn.commit()
+
+  print("Done with ships")
 

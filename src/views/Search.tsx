@@ -22,7 +22,7 @@ export default function Search({
 
     const entries = Object.entries(ships);
     const r = new RegExp(query, "ig");
-    const res = entries.filter((t) => r.test(t[1].fields.title));
+    const res = entries.filter((t) => r.test(t[1].title));
     setResults(Object.fromEntries(res));
   }, [query, ships]);
 
@@ -71,7 +71,7 @@ export default function Search({
                 setQuery("");
               }}
             >
-              {ship[1].fields.title}
+              {ship[1].title}
             </button>
           ))}
         </div>

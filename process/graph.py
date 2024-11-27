@@ -1,8 +1,9 @@
 import json
 import igraph as ig
-from os.path import exists
+import os
 from math import floor, sqrt
 import numpy as np
+import psycopg
 
 def process_graph():
   good_graph_found = False
@@ -15,22 +16,24 @@ def find_ship_name(ships, shipId):
       return ship["name"]
 
 def gen_graph():
-  g = ig.Graph()
+  with psycopg.connect(os.environ["DB_URI"]) as conn:
+    with conn.cursor() as cur:
+      cur.execute("SELECT (shipa, shipb, value) FROM similarity")
+      data = cur.fetchall()
 
-  if not exists("data/similarity_indices.json"):
+  if len(data) == 0:
     print("Similarities not processed.")
     return
-
-  file = open("data/similarity_indices.json", "r", encoding="utf-8")
-  data = dict(json.load(file))
 
   edges = []
   counted_ships = set()
 
   print("Building graph...")
-  for (key, value) in list(data.items()):
-    shipA = str(key).split('-')[0]
-    shipB = str(key).split('-')[1]
+  g = ig.Graph()
+  for row in data:
+    shipA = row[0][0]
+    shipB = row[0][1]
+    value = float(row[0][2])
 
     # give each ship at least one edge
     if ((shipA in counted_ships) and (shipB in counted_ships)) or value == 0:
@@ -165,8 +168,14 @@ def gen_graph():
 
   scaledNodes["HIGH_SEAS_ISLAND"] = closestLocation
 
-  nodes_json = json.dumps(scaledNodes)
-  nodes_file = open('data/nodes.json', 'w', encoding='utf-8')
-  nodes_file.write(nodes_json)
+  with psycopg.connect(os.environ["DB_URI"]) as conn:
+    with conn.cursor() as cur:
+      args = []
+      for node in scaledNodes:
+        args.append((scaledNodes[node][0], scaledNodes[node][1], node))
+      
+      cur.executemany("UPDATE ships SET x_pos = %s, y_pos = %s WHERE id = %s", args)
+
+    conn.commit()
 
   return True

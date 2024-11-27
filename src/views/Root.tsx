@@ -28,11 +28,10 @@ const LoadGraph = (props: {
   useEffect(() => {
     const graph = new Graph();
 
-    const nodesReq = fetch(`/api/nodes`).then((r) => r.json());
     const shipsReq = fetch(`/api/ships`).then((r) => r.json());
 
-    Promise.all([nodesReq, shipsReq])
-      .then(async ([nodes, ships]) => {
+    shipsReq
+      .then(async (ships) => {
         let minX = 0;
         let maxX = 0;
         let minY = 0;
@@ -51,12 +50,12 @@ const LoadGraph = (props: {
           }
         }
 
-        for (const node in nodes) {
-          if (node === "HIGH_SEAS_ISLAND") {
-            graph.addNode(node, {
+        for (const ship in ships) {
+          if (ship === "HIGH_SEAS_ISLAND") {
+            graph.addNode(ship, {
               label: "",
-              x: nodes[node][0],
-              y: nodes[node][1],
+              x: ships[ship].x_pos,
+              y: ships[ship].y_pos,
               size: 75,
               color: "#00000000",
               image: "harbor.svg",
@@ -64,25 +63,25 @@ const LoadGraph = (props: {
             continue;
           }
 
-          if (nodes[node][0] < minX) minX = nodes[node][0];
-          if (nodes[node][0] > maxX) maxX = nodes[node][0];
-          if (nodes[node][1] < minY) minY = nodes[node][1];
-          if (nodes[node][1] > maxY) maxY = nodes[node][1];
+          if (ships[ship][0] < minX) minX = ships[ship].x_pos;
+          if (ships[ship][0] > maxX) maxX = ships[ship].x_pos;
+          if (ships[ship][1] < minY) minY = ships[ship].y_pos;
+          if (ships[ship][1] > maxY) maxY = ships[ship].y_pos;
 
-          const name = ships[node].fields.title;
+          const name = ships[ship].title;
           const img = shipImgs[Math.floor(Math.random() * shipImgs.length)];
 
-          graph.addNode(node, {
+          graph.addNode(ship, {
             label: name,
-            x: nodes[node][0],
-            y: nodes[node][1],
+            x: ships[ship].x_pos,
+            y: ships[ship].y_pos,
             size: 15,
             color: "#00000000",
             image: img,
-            hours: ships[node].fields.hours,
-            screenshotUrl: ships[node].fields.screenshot_url,
-            username: ships[node].fields.slack_username,
-            id: node,
+            hours: ships[ship].hours,
+            screenshotUrl: ships[ship].screenshot_url,
+            username: ships[ship].slack_username,
+            id: ship,
           });
         }
 

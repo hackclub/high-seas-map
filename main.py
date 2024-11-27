@@ -3,8 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread
-import json
 import os
+import psycopg
 
 from all import run_all
 from download.ships import download_ships
@@ -28,8 +28,13 @@ def start_scheduler():
   scheduler.add_job(run_all, 'interval', hours=24)
   scheduler.start()
 
-  if not os.path.exists("data/nodes.json"):
-    run_all()
+  with psycopg.connect(os.environ["DB_URI"]) as conn:
+    with conn.cursor() as cur:
+      cur.execute("SELECT (x_pos, y_pos) FROM ships WHERE id = 'HIGH_SEAS_ISLAND'")
+      island = cur.fetchone()
+
+      if island == None:
+        run_all()
 
 def on_starting(server):
   p = Thread(target=start_scheduler)
@@ -37,19 +42,31 @@ def on_starting(server):
 
 @api.get("/ships")
 def ships():
-  if not os.path.exists("data/filtered_ships.json"):
+  with psycopg.connect(os.environ["DB_URI"]) as conn:
+    with conn.cursor() as cur:
+      cur.execute("SELECT (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username, x_pos, y_pos) FROM ships WHERE filtered = true")
+      ships = cur.fetchall()
+
+  if len(ships) == 0:
     return None
+  
+  nice_ships = {}
+  for row in ships:
+    ship = row[0]
+    nice_ships[ship[0]] = {
+      "identifier": ship[1],
+      "readme_url": ship[2],
+      "repo_url": ship[3],
+      "title": ship[4],
+      "screenshot_url": ship[5],
+      "hours": float(ship[6] or 0),
+      "slack_id": ship[7],
+      "slack_username": ship[8],
+      "x_pos": float(ship[9]),
+      "y_pos": float(ship[10]),
+    }
 
-  ships_file = open("data/filtered_ships.json", "r")
-  return json.load(ships_file)
-
-@api.get("/nodes")
-def ships():
-  if not os.path.exists("data/nodes.json"):
-    return None
-
-  ships_file = open("data/nodes.json", "r")
-  return json.load(ships_file)
+  return nice_ships
 
 @api.post("/refresh/all")
 def refresh_all(auth: Auth, response: Response):

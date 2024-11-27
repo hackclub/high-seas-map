@@ -28,7 +28,7 @@ export default function ShipOverview({
 
       setShip(shipData);
 
-      fetch(shipData.fields.readme_url)
+      fetch(shipData.readme_url)
         .then((r) => r.text())
         .then((text) => {
           setReadme(text);
@@ -76,22 +76,22 @@ export default function ShipOverview({
       <div className="px-10 pt-10 pb-2 w-full bg-hwidget">
         <div className="flex flex-row justify-between items-center">
           <p className="text-white sm:text-lg text-xl font-bold">
-            {ship.fields.title}
+            {ship.title}
           </p>
           <div className="flex justify-start items-center gap-3">
-            {ship.fields.deploy_url && (
+            {ship.deploy_url && (
               <a
                 title="Ship deploy link"
-                href={ship.fields.deploy_url}
+                href={ship.deploy_url}
                 target="_blank"
               >
                 <FaLink className="text-xl" />
               </a>
             )}
-            {ship.fields.repo_url && (
+            {ship.repo_url && (
               <a
                 title="Ship repo link"
-                href={ship.fields.repo_url}
+                href={ship.repo_url}
                 target="_blank"
               >
                 <FaCode className="text-xl" />
