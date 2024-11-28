@@ -65,6 +65,7 @@ def download_ships():
 
   with psycopg.connect(os.environ["DB_URI"]) as conn:
     with conn.cursor() as cur:
+      cur.execute("DELETE FROM similarity")
       cur.execute("DELETE FROM ships")
 
       args = []
