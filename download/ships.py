@@ -5,6 +5,7 @@ import requests
 from slack_sdk import WebClient
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import psycopg
+from time import sleep, time
 
 def download_ships():
   api = Api(os.environ['AIRTABLE_API_KEY'])
@@ -48,9 +49,18 @@ def download_ships():
       if len(path) == 3:
         headers = {
           'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': "2022-11-28"
+          'X-GitHub-Api-Version': "2022-11-28",
+          'Authorization': f"Bearer {os.environ["GITHUB_TOKEN"]}"
         }
         repo_info_req = requests.get(f"https://api.github.com/repos/{path[1]}/{path[2]}", headers=headers)
+        while repo_info_req.status_code == 429 or repo_info_req.status_code == 403:
+          reset_time = repo_info_req.headers["x-ratelimit-reset"]
+          time_left = reset_time - time()
+          print(f"github ratelimited... waiting {time_left} seconds")
+          sleep(time_left)
+
+          repo_info_req = requests.get(f"https://api.github.com/repos/{path[1]}/{path[2]}", headers=headers)
+
         repo_info = repo_info_req.json()
         branch = repo_info['default_branch'] if "default_branch" in repo_info else "main"
         readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{branch}/README.md"
