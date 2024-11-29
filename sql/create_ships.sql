@@ -1,0 +1,1 @@
+CREATE TABLE ships (id text PRIMARY KEY, ship_id text, readme_url text, repo_url text, title text, screenshot_url text, hours decimal, slack_id text, slack_username text, filtered boolean, x_pos decimal, y_pos decimal);
