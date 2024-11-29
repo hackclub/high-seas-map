@@ -37,7 +37,7 @@ def gen_graph():
 
     # give each ship at least one edge
     if ((shipA in counted_ships) and (shipB in counted_ships)) or value == 0:
-      if float(value) < 0.2:
+      if float(value) < 0.4:
         continue
 
     try:
@@ -126,8 +126,8 @@ def gen_graph():
     
     grid.append(row)
   
-  islandW = 13
-  islandH = 13
+  islandW = 15
+  islandH = 15
 
   xStreak = 0
   islandLocations = []
