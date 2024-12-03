@@ -11,3 +11,4 @@ apscheduler==3.10.4
 slack_sdk==3.33.4
 numpy==1.26.4
 psycopg[binary]==3.2.3
+joblib==1.4.2
