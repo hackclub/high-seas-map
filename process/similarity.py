@@ -4,12 +4,17 @@ import psycopg
 import os
 from urllib.parse import urlparse
 from time import sleep, time
+import gc
 
 def process_similarity():
   with psycopg.connect(os.environ["DB_URI"]) as conn:
     with conn.cursor() as cur:
       cur.execute("SELECT (id, readme_url, repo_url) FROM ships")
       ships = cur.fetchall()
+
+      cur.close()
+  
+  conn.close()
 
   if len(ships) == 0:
     print("Ships not downloaded.")
@@ -115,7 +120,13 @@ def process_similarity():
         
       cur.executemany("INSERT INTO similarity (shipa, shipb, nlp_value, lang_value) VALUES (%s, %s, %s, %s)", insertArgs)
       cur.executemany("UPDATE ships SET filtered = true WHERE id = %s", updateArgs)
+
+      cur.close()
     
     conn.commit()
+    conn.close()
+
+  del nlp
+  gc.collect()
 
   print("Done with similarity")
