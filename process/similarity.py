@@ -88,40 +88,32 @@ def process_similarity():
             
           ai_value = normalized_list[x].similarity(normalized_list[y])
 
-          lang_similarity = None
+          lang_similarity = 0
           if languages[x] != None and languages[y] != None:
             if len(languages[x].keys()) != 0 and len(languages[y].keys()) != 0:
-              ship_languages = set(languages[x].keys()).union(set(languages[y].keys()))
-              lang_overlap = {}
-              total_x = sum(languages[x].values())
-              total_y = sum(languages[y].values())
-              for lang in ship_languages:
-                if lang in languages[x]:
-                  percent_x = languages[x][lang] / total_x
-                else:
-                  percent_x = 0
-
-                if lang in languages[y]:
-                  percent_y = languages[y][lang] / total_y
-                else:
-                  percent_y = 0
-                
-                lang_overlap[lang] = min(percent_x, percent_y)
+              top_language_x = None
+              for lang in languages[x]:
+                if top_language_x == None:
+                  top_language_x = lang
+                elif languages[x][lang] > languages[x][top_language_x]:
+                  top_language_x = lang
               
-              lang_similarity = sum(lang_overlap.values()) / len(lang_overlap.keys())
+              top_language_y = None
+              for lang in languages[y]:
+                if top_language_y == None:
+                  top_language_y = lang
+                elif languages[y][lang] > languages[y][top_language_y]:
+                  top_language_y = lang
+              
+              lang_similarity = int(top_language_y == top_language_x)
           
-          if lang_similarity == None:
-            similarity = max(0, ai_value)
-          else:
-            similarity = (lang_similarity + max(0, ai_value)) / 2
-          
-          insertArgs.append((id_list[x], id_list[y], similarity))
+          insertArgs.append((id_list[x], id_list[y], ai_value, lang_similarity))
     
       updateArgs = []
       for ship in filtered_ships:
         updateArgs.append((ship,))
         
-      cur.executemany("INSERT INTO similarity (shipa, shipb, value) VALUES (%s, %s, %s)", insertArgs)
+      cur.executemany("INSERT INTO similarity (shipa, shipb, nlp_value, lang_value) VALUES (%s, %s, %s, %s)", insertArgs)
       cur.executemany("UPDATE ships SET filtered = true WHERE id = %s", updateArgs)
     
     conn.commit()
