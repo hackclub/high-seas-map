@@ -53,18 +53,21 @@ def ships():
   nice_ships = {}
   for row in ships:
     ship = row[0]
-    nice_ships[ship[0]] = {
-      "identifier": ship[1],
-      "readme_url": ship[2],
-      "repo_url": ship[3],
-      "title": ship[4],
-      "screenshot_url": ship[5],
-      "hours": float(ship[6] or 0),
-      "slack_id": ship[7],
-      "slack_username": ship[8],
-      "x_pos": float(ship[9]),
-      "y_pos": float(ship[10]),
-    }
+
+    # make sure it has a location
+    if ship[9] != None:
+      nice_ships[ship[0]] = {
+        "identifier": ship[1],
+        "readme_url": ship[2],
+        "repo_url": ship[3],
+        "title": ship[4],
+        "screenshot_url": ship[5],
+        "hours": float(ship[6] or 0),
+        "slack_id": ship[7],
+        "slack_username": ship[8],
+        "x_pos": float(ship[9]),
+        "y_pos": float(ship[10]),
+      }
 
   return nice_ships
 
