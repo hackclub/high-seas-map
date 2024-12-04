@@ -67,7 +67,7 @@ def download_ships():
       elif len(path) > 3:
         # File url
         if path[3] == "blob":
-          readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{path[4]}/README.md"
+          readme_url = f"https://raw.githubusercontent.com/{path[1]}/{path[2]}/{path[4]}/{path[5]}"
 
     if readme_url in readme_urls:
       print(f"Skipping ship record {ship['id']} since it is already included")
