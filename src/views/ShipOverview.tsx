@@ -73,8 +73,8 @@ export default function ShipOverview({
 
   return (
     <div className="fixed bottom-3 shadow-sm shadow-yellow-600 right-3 rounded-sm w-2/5 max-h-[50vh] overflow-y-scroll border-2 bg-hwidget border-yellow-600 text-white">
-      <div className="px-10 pt-10 pb-2 w-full bg-hwidget">
-        <div className="flex flex-row justify-between items-center">
+      <div className="flex flex-col justify-start items-start px-10 pt-10 pb-2 w-full bg-hwidget">
+        <div className="flex flex-row justify-between items-center w-full">
           <p className="text-white sm:text-lg text-xl font-bold">
             {ship.title}
           </p>
@@ -89,16 +89,23 @@ export default function ShipOverview({
               </a>
             )}
             {ship.repo_url && (
-              <a
-                title="Ship repo link"
-                href={ship.repo_url}
-                target="_blank"
-              >
+              <a title="Ship repo link" href={ship.repo_url} target="_blank">
                 <FaCode className="text-xl" />
               </a>
             )}
           </div>
         </div>
+        <p className="text-lg italic">
+          Made in {ship.hours.toFixed(1)} hour{ship.hours === 1 ? "" : "s"}{" "}
+          by&nbsp;
+          <a
+            href={`https://hackclub.slack.com/team/${ship.slack_id}`}
+            target="_blank"
+            className="underline"
+          >
+            @{ship.slack_username}
+          </a>
+        </p>
         <hr className="border-[1px] border-gray-400 my-2 w-full" />
       </div>
       <Markdown
