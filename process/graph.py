@@ -11,15 +11,19 @@ def find_ship_name(ships, shipId):
     if ship["id"] == shipId:
       return ship["name"]
 
-def process_graph():
-  with psycopg.connect(os.environ["DB_URI"]) as conn:
-    with conn.cursor() as cur:
-      cur.execute("SELECT (shipa, shipb, nlp_value, lang_value) FROM similarity")
-      data = cur.fetchall()
+def process_graph(similarity, pre_ships):
+  if similarity != None:
+    data = list(map(lambda s: [s], similarity))
+    filtered_ships = list(map(lambda s: [s], pre_ships))
+  else:
+    with psycopg.connect(os.environ["DB_URI"]) as conn:
+      with conn.cursor() as cur:
+        cur.execute("SELECT (shipa, shipb, nlp_value, lang_value) FROM similarity")
+        data = cur.fetchall()
 
-    with conn.cursor() as cur:
-      cur.execute("SELECT id FROM ships WHERE filtered = true")
-      filtered_ships = list(filter(lambda r: r[0] != "HIGH_SEAS_ISLAND", cur.fetchall()))
+      with conn.cursor() as cur:
+        cur.execute("SELECT id FROM ships WHERE filtered = true")
+        filtered_ships = list(filter(lambda r: r[0] != "HIGH_SEAS_ISLAND", cur.fetchall()))
 
   if len(data) == 0:
     print("Similarities not processed.")
@@ -257,19 +261,20 @@ def process_graph():
     cluster_x = scaled_clusters[cluster_name][0]
     cluster_y = scaled_clusters[cluster_name][1]
 
-    print(cluster)
-
     for cluster_node in cluster:
       final_nodes[cluster_node] = [cluster[cluster_node][0] + cluster_x, cluster[cluster_node][1] + cluster_y]
 
-  with psycopg.connect(os.environ["DB_URI"]) as conn:
-    with conn.cursor() as cur:
-      args = []
-      for node in final_nodes:
-        args.append((final_nodes[node][0], final_nodes[node][1], node))
-      
-      cur.executemany("UPDATE ships SET x_pos = %s, y_pos = %s WHERE id = %s", args)
-
-    conn.commit()
-
   print("Done with graph")
+
+  if similarity != None:
+    return final_nodes
+  else:
+    with psycopg.connect(os.environ["DB_URI"]) as conn:
+      with conn.cursor() as cur:
+        args = []
+        for node in final_nodes:
+          args.append((final_nodes[node][0], final_nodes[node][1], node))
+        
+        cur.executemany("UPDATE ships SET x_pos = %s, y_pos = %s WHERE id = %s", args)
+
+      conn.commit()

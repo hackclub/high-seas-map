@@ -7,13 +7,13 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import psycopg
 from time import sleep, time
 
-def download_ships():
+def download_ships(reset):
   api = Api(os.environ['AIRTABLE_API_KEY'])
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
   slack = WebClient(token=os.environ["SLACK_API_KEY"])
 
-  rate_limit_handler = RateLimitErrorRetryHandler(max_retry_count=1)
+  rate_limit_handler = RateLimitErrorRetryHandler(max_retry_count=5)
 
   slack.retry_handlers.append(rate_limit_handler)
 
@@ -83,24 +83,28 @@ def download_ships():
 
     fixed_ships.append(ship_dict)
 
-  with psycopg.connect(os.environ["DB_URI"]) as conn:
-    with conn.cursor() as cur:
-      cur.execute("DELETE FROM similarity")
-      cur.execute("DELETE FROM ships")
-
-      args = []
-      for ship in fixed_ships:
-        args.append((ship["id"], ship["fields"]["identifier"], ship["fields"]["readme_url"], ship["fields"]["repo_url"],
-                          ship["fields"]["title"], ship["fields"]["screenshot_url"], ship["fields"]["hours"],
-                          ship["fields"]["entrant__slack_id"][0], ship["fields"]["slack_username"]))
-      
-      cur.execute("INSERT INTO ships (id, filtered) VALUES ('HIGH_SEAS_ISLAND', true)")
-      cur.executemany("""
-                    INSERT INTO ships (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """, args)
-      
-    conn.commit()
-
   print("Done with ships")
+  if reset:
+    with psycopg.connect(os.environ["DB_URI"]) as conn:
+      with conn.cursor() as cur:
+        cur.execute("DELETE FROM similarity")
+        cur.execute("DELETE FROM ships")
+
+        args = []
+        for ship in fixed_ships:
+          args.append((ship["id"], ship["fields"]["identifier"], ship["fields"]["readme_url"], ship["fields"]["repo_url"],
+                            ship["fields"]["title"], ship["fields"]["screenshot_url"], ship["fields"]["hours"],
+                            ship["fields"]["entrant__slack_id"][0], ship["fields"]["slack_username"]))
+        
+        cur.execute("INSERT INTO ships (id, filtered) VALUES ('HIGH_SEAS_ISLAND', true)")
+        cur.executemany("""
+                      INSERT INTO ships (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username)
+                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                      """, args)
+        
+      conn.commit()
+  else:
+    return fixed_ships
+
+  
 

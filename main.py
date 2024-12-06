@@ -5,6 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread
 import os
 import psycopg
+import gc
 
 from all import run_all
 from download.ships import download_ships
@@ -78,6 +79,7 @@ def refresh_all(auth: Auth, response: Response):
     return None
   
   run_all()
+  gc.collect()
   return None
 
 @api.post("/refresh/ships")
@@ -87,6 +89,7 @@ def refresh_all(auth: Auth, response: Response):
     return None
   
   download_ships()
+  gc.collect()
   return None
 
 @api.post("/refresh/similarity")
@@ -96,6 +99,7 @@ def refresh_all(auth: Auth, response: Response):
     return None
   
   process_similarity()
+  gc.collect()
   return None
 
 @api.post("/refresh/graph")
@@ -105,4 +109,5 @@ def refresh_all(auth: Auth, response: Response):
     return None
   
   process_graph()
+  gc.collect()
   return None
