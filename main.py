@@ -88,7 +88,7 @@ def refresh_all(auth: Auth, response: Response):
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
   
-  download_ships()
+  download_ships(None)
   gc.collect()
   return None
 
@@ -98,7 +98,7 @@ def refresh_all(auth: Auth, response: Response):
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
   
-  process_similarity()
+  process_similarity(None)
   gc.collect()
   return None
 
@@ -108,6 +108,6 @@ def refresh_all(auth: Auth, response: Response):
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
   
-  process_graph()
+  process_graph(None, None)
   gc.collect()
   return None

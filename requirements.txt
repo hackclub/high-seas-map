@@ -6,7 +6,6 @@ pycairo==1.27.0
 fastapi[standard]==0.115.4
 gunicorn==23.0.0
 uvicorn==0.32.0
-spacy==3.7.6
 apscheduler==3.10.4
 slack_sdk==3.33.4
 numpy==1.26.4

@@ -37,7 +37,7 @@ def run_all():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, true, %s, %s)
                     """, args)
       
-      cur.executemany("INSERT INTO similarity (shipa, shipb, nlp_value, lang_value) VALUES (%s, %s, %s, %s)", similarity)
+      cur.executemany("INSERT INTO similarity (shipa, shipb, top_lang_value, lang_value) VALUES (%s, %s, %s, %s)", similarity)
 
       cur.close()
     

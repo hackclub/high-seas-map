@@ -18,7 +18,7 @@ def process_graph(similarity, pre_ships):
   else:
     with psycopg.connect(os.environ["DB_URI"]) as conn:
       with conn.cursor() as cur:
-        cur.execute("SELECT (shipa, shipb, nlp_value, lang_value) FROM similarity")
+        cur.execute("SELECT (shipa, shipb, top_lang_value, lang_value) FROM similarity")
         data = cur.fetchall()
 
       with conn.cursor() as cur:
@@ -30,14 +30,14 @@ def process_graph(similarity, pre_ships):
     return
 
   print("Building graph...")
-  def process_lang_index(row):
+  def process_top_lang_index(row):
     shipA = row[0][0]
     shipB = row[0][1]
-    value = float(row[0][3])
+    value = float(row[0][2])
 
     return ((shipA, shipB), float(value))
   
-  edges_result = Parallel(n_jobs=4)(delayed(process_lang_index)(row) for row in data)
+  edges_result = Parallel(n_jobs=4)(delayed(process_top_lang_index)(row) for row in data)
   filtered_ships = list(map(lambda row: row[0], filtered_ships))
   g = ig.Graph()
   g.add_vertices(filtered_ships)
@@ -51,19 +51,16 @@ def process_graph(similarity, pre_ships):
   print(clustering.modularity)
   print(clustering.summary())
 
-  def process_nlp_index(row, allowed_list):
+  def process_lang_index(row, allowed_list):
     shipA = row[0][0]
     shipB = row[0][1]
 
     if (shipA not in allowed_list) or (shipB not in allowed_list):
       return None
 
-    value = float(row[0][2])
+    value = float(row[0][3])
 
-    if float(value) < 0.5:
-      return None
-    else:
-      return ((shipA, shipB), float(value))
+    return ((shipA, shipB), float(value))
 
   cluster_count = max(clustering.membership) + 1
   clusters_layouts = []
@@ -83,7 +80,7 @@ def process_graph(similarity, pre_ships):
         clusters_layouts.append(single_layout)
       else:
         sg = ig.Graph()
-        edges_result = parallel(delayed(process_nlp_index)(row, cluster_ships) for row in data)
+        edges_result = parallel(delayed(process_lang_index)(row, cluster_ships) for row in data)
         sg.add_vertices(cluster_ships)
         edges, weights = list(zip(*filter(lambda r: r != None, edges_result)))
         sg.add_edges(edges, {
@@ -96,7 +93,7 @@ def process_graph(similarity, pre_ships):
           min_coords.append(0)
           max_coords.append(1)
 
-        sg_layout = sg.layout("fr", weights="weight", minx=min_coords, miny=min_coords, maxx=max_coords, maxy=max_coords)
+        sg_layout = sg.layout("kk", weights="weight", minx=min_coords, miny=min_coords, maxx=max_coords, maxy=max_coords)
 
         nodes = {}
         for i, coord in enumerate(sg_layout._coords): 
@@ -121,7 +118,7 @@ def process_graph(similarity, pre_ships):
 
         aspect = (max_x - min_x) / (max_y - min_y)
 
-        SCALE_RES = 50
+        SCALE_RES = 100
         scaled_nodes = {}
         for nodeId in nodes.keys():
           node = nodes[nodeId]

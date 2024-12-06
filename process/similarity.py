@@ -1,5 +1,4 @@
 import requests
-import spacy
 import psycopg
 import os
 from urllib.parse import urlparse
@@ -24,31 +23,11 @@ def process_similarity(pre_ships):
   
   filtered_ships = {}
 
-  nlp = spacy.load("en_core_web_sm")
-  normalized_list = []
   id_list = []
   languages = []
-  print("Downloading & normalizing ship READMEs & GitHub data...")
+  print("Downloading ship GitHub data...")
   for row in ships:
     ship = row[0]
-    try:
-      readme_text = requests.get(ship[1])
-    except:
-      print(f"Skipping ship record {ship[0]} as it does not have a valid README")
-      continue
-
-    if readme_text.status_code != 200:
-      print(f"Skipping ship record {ship[0]} as it does not have a valid README")
-      continue
-
-    if readme_text.text == "":
-      print(f"Skipping ship record {ship[0]} as it has an empty README")
-      continue
-
-    normalized = readme_text.text[0:5000]
-    embedding = nlp(normalized)
-
-    normalized_list.append(embedding)
 
     parsed_url = urlparse(ship[2])
     if parsed_url.netloc == "github.com":
@@ -89,12 +68,30 @@ def process_similarity(pre_ships):
     for y in range(len(id_list)):
       if x == y:
         continue
-        
-      ai_value = normalized_list[x].similarity(normalized_list[y])
 
+      top_lang_similarity = 0
       lang_similarity = 0
       if languages[x] != None and languages[y] != None:
         if len(languages[x].keys()) != 0 and len(languages[y].keys()) != 0:
+          ship_languages = set(languages[x].keys()).union(set(languages[y].keys()))
+          lang_overlap = {}
+          total_x = sum(languages[x].values())
+          total_y = sum(languages[y].values())
+
+          for lang in ship_languages:
+            if lang in languages[x]:
+              percent_x = languages[x][lang] / total_x
+            else:
+              percent_x = 0
+            if lang in languages[y]:
+              percent_y = languages[y][lang] / total_y
+            else:
+              percent_y = 0
+            
+            lang_overlap[lang] = min(percent_x, percent_y)
+
+          lang_similarity = sum(lang_overlap.values()) / len(lang_overlap.keys())
+
           top_language_x = None
           for lang in languages[x]:
             if top_language_x == None:
@@ -109,9 +106,9 @@ def process_similarity(pre_ships):
             elif languages[y][lang] > languages[y][top_language_y]:
               top_language_y = lang
           
-          lang_similarity = int(top_language_y == top_language_x)
+          top_lang_similarity = int(top_language_y == top_language_x)
       
-      insertArgs.append((id_list[x], id_list[y], ai_value, lang_similarity))
+      insertArgs.append((id_list[x], id_list[y], top_lang_similarity, lang_similarity))
 
   updateArgs = []
   for ship in filtered_ships:
@@ -124,7 +121,7 @@ def process_similarity(pre_ships):
     with psycopg.connect(os.environ["DB_URI"]) as conn:
       with conn.cursor() as cur:
         cur.execute("DELETE FROM similarity")  
-        cur.executemany("INSERT INTO similarity (shipa, shipb, nlp_value, lang_value) VALUES (%s, %s, %s, %s)", insertArgs)
+        cur.executemany("INSERT INTO similarity (shipa, shipb, top_lang_value, lang_value) VALUES (%s, %s, %s, %s)", insertArgs)
         cur.executemany("UPDATE ships SET filtered = true WHERE id = %s", updateArgs)
 
         cur.close()
