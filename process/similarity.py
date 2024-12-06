@@ -24,7 +24,7 @@ def process_similarity(pre_ships):
   
   filtered_ships = {}
 
-  nlp = spacy.load("en_core_web_md")
+  nlp = spacy.load("en_core_web_sm")
   normalized_list = []
   id_list = []
   languages = []
