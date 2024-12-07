@@ -74,6 +74,11 @@ export default function ShipOverview({
   return (
     <div className="fixed bottom-3 shadow-sm shadow-yellow-600 right-3 rounded-sm w-2/5 max-h-[50vh] overflow-y-scroll border-2 bg-hwidget border-yellow-600 text-white">
       <div className="flex flex-col justify-start items-start px-10 pt-10 pb-2 w-full bg-hwidget">
+        <img
+          src={ship.screenshot_url}
+          alt={`Screenshot of ${ship.title}`}
+          className="rounded-md w-1/2 pb-5"
+        />
         <div className="flex flex-row justify-between items-center w-full">
           <p className="text-white sm:text-lg text-xl font-bold">
             {ship.title}
