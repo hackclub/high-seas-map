@@ -5,6 +5,7 @@ import numpy as np
 import psycopg
 from joblib import Parallel, delayed
 from random import random
+import gc
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -65,75 +66,76 @@ def process_graph(similarity, pre_ships):
   cluster_count = max(clustering.membership) + 1
   clusters_layouts = []
 
-  with Parallel(n_jobs=4) as parallel:
-    for cluster_idx in range(0, cluster_count):
-      cluster_node_ids = []
-      cluster_ships = []
-      for (node_id, cluster) in enumerate(clustering.membership):
-        if cluster == cluster_idx:
-          cluster_node_ids.append(node_id)
-          cluster_ships.append(g.vs[node_id]["name"])
-      
-      if len(cluster_ships) == 1:
-        single_layout = {}
-        single_layout[cluster_ships[0]] = [random(), random()]
-        clusters_layouts.append(single_layout)
-      else:
-        sg = ig.Graph()
-        edges_result = parallel(delayed(process_lang_index)(row, cluster_ships) for row in data)
-        sg.add_vertices(cluster_ships)
-        edges, weights = list(zip(*filter(lambda r: r != None, edges_result)))
-        sg.add_edges(edges, {
-          'weight': weights
-        })
-
-        min_coords = []
-        max_coords = []
-        for v in sg.vs:
-          min_coords.append(0)
-          max_coords.append(1)
-
-        sg_layout = sg.layout("kk", weights="weight", minx=min_coords, miny=min_coords, maxx=max_coords, maxy=max_coords)
-
-        nodes = {}
-        for i, coord in enumerate(sg_layout._coords): 
-          key = sg.vs[i]['name']
-
-          nodes[key] = coord
-
-        min_x = 0
-        max_x = 0
-        min_y = 0
-        max_y = 0
-        for key in nodes:
-          coords = nodes[key]
-          if coords[0] < min_x:
-            min_x = coords[0]
-          if coords[0] > max_x:
-            max_x = coords[0]
-          if coords[1] < min_y:
-            min_y = coords[1]
-          if coords[1] > max_y:
-            max_y = coords[1]
-
-        aspect = (max_x - min_x) / (max_y - min_y)
-
-        SCALE_RES = 100
-        scaled_nodes = {}
-        for nodeId in nodes.keys():
-          node = nodes[nodeId]
-
-          percent_x = (node[0] - min_x) / (max_x - min_x)
-          scaled_x = aspect * SCALE_RES * percent_x
-
-          percent_y = (node[1] - min_y) / (max_y - min_y)
-          scaled_y = (1 / aspect) * SCALE_RES * percent_y
-
-          scaled_nodes[nodeId] = [scaled_x, scaled_y]
-
-        clusters_layouts.append(scaled_nodes)
-
+  def process_subgraph(cluster_idx):
+    cluster_node_ids = []
+    cluster_ships = []
+    for (node_id, cluster) in enumerate(clustering.membership):
+      if cluster == cluster_idx:
+        cluster_node_ids.append(node_id)
+        cluster_ships.append(g.vs[node_id]["name"])
     
+    if len(cluster_ships) == 1:
+      single_layout = {}
+      single_layout[cluster_ships[0]] = [random(), random()]
+      clusters_layouts.append(single_layout)
+    else:
+      sg = ig.Graph()
+      edges_result = Parallel(n_jobs=4)(delayed(process_lang_index)(row, cluster_ships) for row in data)
+      sg.add_vertices(cluster_ships)
+      edges, weights = list(zip(*filter(lambda r: r != None, edges_result)))
+      sg.add_edges(edges, {
+        'weight': weights
+      })
+
+      min_coords = []
+      max_coords = []
+      for v in sg.vs:
+        min_coords.append(0)
+        max_coords.append(1)
+
+      sg_layout = sg.layout("kk", weights="weight", minx=min_coords, miny=min_coords, maxx=max_coords, maxy=max_coords)
+
+      nodes = {}
+      for i, coord in enumerate(sg_layout._coords): 
+        key = sg.vs[i]['name']
+
+        nodes[key] = coord
+
+      min_x = 0
+      max_x = 0
+      min_y = 0
+      max_y = 0
+      for key in nodes:
+        coords = nodes[key]
+        if coords[0] < min_x:
+          min_x = coords[0]
+        if coords[0] > max_x:
+          max_x = coords[0]
+        if coords[1] < min_y:
+          min_y = coords[1]
+        if coords[1] > max_y:
+          max_y = coords[1]
+
+      aspect = (max_x - min_x) / (max_y - min_y)
+
+      SCALE_RES = 100
+      scaled_nodes = {}
+      for nodeId in nodes.keys():
+        node = nodes[nodeId]
+
+        percent_x = (node[0] - min_x) / (max_x - min_x)
+        scaled_x = aspect * SCALE_RES * percent_x
+
+        percent_y = (node[1] - min_y) / (max_y - min_y)
+        scaled_y = (1 / aspect) * SCALE_RES * percent_y
+
+        scaled_nodes[nodeId] = [scaled_x, scaled_y]
+
+      clusters_layouts.append(scaled_nodes)
+
+  for cluster_idx in range(0, cluster_count):
+    gc.collect()
+    process_subgraph(cluster_idx)
 
   print("Plotting graph...")
 

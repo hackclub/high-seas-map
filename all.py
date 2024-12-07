@@ -4,15 +4,21 @@ from process.graph import process_graph
 import psycopg
 import os
 import gc
+import psutil
 
 def run_all():
+  process = psutil.Process()
+
   ships = download_ships(reset=False)
+  print(process.memory_info().rss)
   gc.collect()
   
   similarity, filtered = process_similarity(ships)
+  print(process.memory_info().rss)
   gc.collect()
 
   nodes = process_graph(similarity, filtered)
+  print(process.memory_info().rss)
   gc.collect()
 
   with psycopg.connect(os.environ["DB_URI"]) as conn:
