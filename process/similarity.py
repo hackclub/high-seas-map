@@ -3,6 +3,7 @@ import psycopg
 import os
 from urllib.parse import urlparse
 from time import sleep, time
+from joblib import Parallel, delayed
 
 def process_similarity(pre_ships):
   if pre_ships != None:
@@ -22,13 +23,11 @@ def process_similarity(pre_ships):
     return
   
   filtered_ships = {}
-
-  id_list = []
-  languages = []
+  languages = {}
   print("Downloading ship GitHub data...")
-  for row in ships:
-    ship = row[0]
 
+  def download_data(ship):
+    ship_languages = None
     parsed_url = urlparse(ship[2])
     if parsed_url.netloc == "github.com":
       path = parsed_url.path.split("/")
@@ -48,24 +47,25 @@ def process_similarity(pre_ships):
           languages_req = requests.get(f"https://api.github.com/repos/{path[1]}/{path[2]}/languages", headers=headers)
         if languages_req.status_code != 200:
           print(languages_req.json())
-          languages.append(None)
         else:
-          languages.append(dict(languages_req.json()))
+          ship_languages = dict(languages_req.json())
       except:
-        languages.append(None)
-    else:
-      languages.append(None)
+        print(f"error when fetching languages for {ship[0]}")
 
-    id_list.append(ship[0])
-    filtered_ships[ship[0]] = ship
+    return (ship, ship_languages)
+  
+  ships_result = Parallel(n_jobs=5)(delayed(download_data)(row[0]) for row in ships)
+  for ship_res in ships_result:
+    filtered_ships[ship_res[0][0]] = ship_res[0]
+    languages[ship_res[0][0]] = ship_res[1]
 
   print("Calculating similarity...")
 
   print("Building similarity pairs...")
 
   insertArgs = []
-  for x in range(len(id_list)):
-    for y in range(len(id_list)):
+  for x in filtered_ships.keys():
+    for y in filtered_ships.keys():
       if x == y:
         continue
 
@@ -108,11 +108,11 @@ def process_similarity(pre_ships):
           
           top_lang_similarity = int(top_language_y == top_language_x)
       
-      insertArgs.append((id_list[x], id_list[y], top_lang_similarity, lang_similarity))
+      insertArgs.append((x, y, top_lang_similarity, lang_similarity))
 
   updateArgs = []
-  for ship in filtered_ships:
-    updateArgs.append((ship,))
+  for ship_res in filtered_ships:
+    updateArgs.append((ship_res,))
 
   print("Done with similarity")
   if pre_ships != None:
