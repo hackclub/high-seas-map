@@ -64,7 +64,6 @@ def process_graph(similarity, pre_ships):
     return ((shipA, shipB), float(value))
 
   cluster_count = max(clustering.membership) + 1
-  clusters_layouts = []
 
   def process_subgraph(cluster_idx):
     cluster_node_ids = []
@@ -77,7 +76,7 @@ def process_graph(similarity, pre_ships):
     if len(cluster_ships) == 1:
       single_layout = {}
       single_layout[cluster_ships[0]] = [random(), random()]
-      clusters_layouts.append(single_layout)
+      return single_layout
     else:
       sg = ig.Graph()
       edges_result = Parallel(n_jobs=4)(delayed(process_lang_index)(row, cluster_ships) for row in data)
@@ -131,11 +130,12 @@ def process_graph(similarity, pre_ships):
 
         scaled_nodes[nodeId] = [scaled_x, scaled_y]
 
-      clusters_layouts.append(scaled_nodes)
-
-  for cluster_idx in range(0, cluster_count):
-    gc.collect()
-    process_subgraph(cluster_idx)
+      return scaled_nodes
+    
+  def subgraphs():
+    for cluster_idx in range(0, cluster_count):
+      gc.collect()
+      yield process_subgraph(cluster_idx)
 
   print("Plotting graph...")
 
@@ -255,7 +255,8 @@ def process_graph(similarity, pre_ships):
   final_nodes["HIGH_SEAS_ISLAND"] = closest_location
 
   print("Pasting in subgraphs...")
-  for (idx, cluster) in enumerate(clusters_layouts):
+  cluster_gen = subgraphs()
+  for (idx, cluster) in enumerate(cluster_gen):
     cluster_name = cg.vs[idx]["name"]
     cluster_x = scaled_clusters[cluster_name][0]
     cluster_y = scaled_clusters[cluster_name][1]
