@@ -228,7 +228,7 @@ export default function Root() {
             labelSize: 14,
             defaultDrawNodeHover: drawHover,
             minCameraRatio: 0.01,
-            maxCameraRatio: 0.4,
+            maxCameraRatio: 0.3,
           }}
         >
           <ForceLayout />
