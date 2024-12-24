@@ -88,7 +88,7 @@ def process_similarity(pre_ships):
             else:
               percent_y = 0
             
-            lang_overlap[lang] = min(percent_x, percent_y)
+            lang_overlap[lang] = min(0, min(percent_x, percent_y))
 
           lang_similarity = sum(lang_overlap.values()) / len(lang_overlap.keys())
 
