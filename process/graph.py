@@ -54,7 +54,7 @@ def process_subgraph(g, data, cluster_idx, membership):
   else:
     sg = ig.Graph()
 
-    edges_result = Parallel(n_jobs=4)(delayed(process_lang_index)(row, cluster_ships) for row in data)
+    edges_result = Parallel(n_jobs=5)(delayed(process_lang_index)(row, cluster_ships) for row in data)
     sg.add_vertices(cluster_ships)
     filtered_result = list(filter(lambda r: r != None, edges_result))
     if len(filtered_result) == 0:
@@ -113,6 +113,54 @@ def process_subgraph(g, data, cluster_idx, membership):
 
     return scaled_nodes
 
+def find_island_location(grid, island_height, island_width, minX, maxX, minY, maxY):
+  x_streak = 0
+  island_locations = []
+
+  for y in range(minX, maxX):
+    for x in range(minY, maxY):
+      if not grid[y][x]:
+        x_streak += 1
+      else:
+        x_streak = 0
+      
+      if x_streak == island_width:
+        bad = False
+
+        for checkY in range(y, y + island_height + 1):
+          for checkX in range((x - x_streak), x + 1):
+            if grid[checkY][checkX]:
+              bad = True
+              x_streak = 0
+              break
+
+          if bad:
+            break
+        
+        if not bad:
+          island_locations.append([x - island_width + (island_width / 2), y + (island_height / 2)])
+  
+  return island_locations
+
+def process_grid(nodes, start, end, width):
+  grid = []
+  for y in range(start, end):
+    row = []
+
+    for x in range(width):
+      row.append(False)
+
+      for id in nodes.keys():
+        n = nodes[id]
+
+        if floor(n[0]) == x and floor(n[1]) == y:
+          row[x] = True
+          break;
+    
+    grid.append(row)
+
+  return grid
+
 def process_graph(similarity, pre_ships):
   if similarity != None:
     data = list(map(lambda s: [s], similarity))
@@ -135,7 +183,7 @@ def process_graph(similarity, pre_ships):
   while not island_found:
     print("Building graph...")
     
-    edges_result = Parallel(n_jobs=4)(delayed(process_top_lang_index)(row) for row in data)
+    edges_result = Parallel(n_jobs=5)(delayed(process_top_lang_index)(row) for row in data)
     filtered_ships = list(map(lambda row: row[0], filtered_ships))
     g = ig.Graph()
     g.add_vertices(filtered_ships)
@@ -173,7 +221,7 @@ def process_graph(similarity, pre_ships):
     for v in clustering.membership:
       cluster_counts[v] += 1
 
-    cluster_edges_result = Parallel(n_jobs=4)(delayed(process_cluster_edges)(i, count, len(cg.vs)) for i, count in enumerate(cluster_counts))
+    cluster_edges_result = Parallel(n_jobs=5)(delayed(process_cluster_edges)(i, count, len(cg.vs)) for i, count in enumerate(cluster_counts))
     cluster_edges, cluster_weights = list(zip(*[edge for result in cluster_edges_result for edge in result]))
     cg.add_edges(cluster_edges, {
       'weight': cluster_weights
@@ -194,6 +242,7 @@ def process_graph(similarity, pre_ships):
     max_x = 0
     min_y = 0
     max_y = 0
+    SCALE_RES = 15000
     for cluster_node in nodes:
       coords = nodes[cluster_node]
       if coords[0] < min_x:
@@ -205,22 +254,21 @@ def process_graph(similarity, pre_ships):
       if coords[1] > max_y:
         max_y = coords[1]
 
-      height = (max_y - min_y)
-      height = 1 if height == 0 else height
-      aspect = (max_x - min_x) / height
+    height = (max_y - min_y)
+    height = 1 if height == 0 else height
+    aspect = (max_x - min_x) / height
 
-      SCALE_RES = 15000
-      scaled_clusters = {}
-      for nodeId in nodes.keys():
-        node = nodes[nodeId]
+    scaled_clusters = {}
+    for nodeId in nodes.keys():
+      node = nodes[nodeId]
 
-        percent_x = (node[0] - min_x) / (max_x - min_x)
-        scaled_x = aspect * SCALE_RES * percent_x
+      percent_x = (node[0] - min_x) / (max_x - min_x)
+      scaled_x = aspect * SCALE_RES * percent_x
 
-        percent_y = (node[1] - min_y) / height
-        scaled_y = (1 / aspect) * SCALE_RES * percent_y
+      percent_y = (node[1] - min_y) / height
+      scaled_y = (1 / aspect) * SCALE_RES * percent_y
 
-        scaled_clusters[nodeId] = [scaled_x, scaled_y]
+      scaled_clusters[nodeId] = [scaled_x, scaled_y]
     
     final_nodes = {}
 
@@ -253,63 +301,42 @@ def process_graph(similarity, pre_ships):
         final_nodes[cluster_node] = [cluster[cluster_node][0] + cluster_x - (width / 2), cluster[cluster_node][1] + cluster_y - (height / 2)]
     
     # island placing
-    print("Placing central island...")
+    print("Building grid...")
+
+    GRID_SPLIT = 5
+    SPLIT_HEIGHT = floor(SCALE_RES / GRID_SPLIT)
     
-    grid = []
-    GRID_FACTOR = 3
-    for y in range(0, SCALE_RES, 1):
-      if y % GRID_FACTOR != 0:
-        grid.append([])
-        continue
+    subrows = []
+    for y in range(GRID_SPLIT - 1):
+      subrows.append(y * SPLIT_HEIGHT)
 
-      row = []
-
-      for x in range(0, SCALE_RES, 1):
-        row.append(False)
-        if x % GRID_FACTOR != 0:
-          continue
-
-        for id in final_nodes.keys():
-          n = final_nodes[id]
-
-          if floor(n[0]) == x and floor(n[1]) == y:
-            row[x] = True
-            break;
-      
-      grid.append(row)
+    subrows_result = Parallel(n_jobs=5)(delayed(process_grid)(final_nodes, subrow, subrow + SPLIT_HEIGHT, SCALE_RES) for subrow in subrows)
+    grid = [
+      r
+      for xs in subrows_result
+      for r in xs
+    ]
     
     island_width = ceil(SCALE_RES * 0.15)
     island_height = ceil(SCALE_RES * 0.15)
 
-    x_streak = 0
-    islandLocations = []
+    print("Placing central island...")
+    SUBGRID_RES = 5
+    SUBGRID_LEN_Y = floor(len(grid) / SUBGRID_RES)
+    SUBGRID_LEN_X = floor(len(grid[0]) / SUBGRID_RES)
+    subgrids = []
+    for y in range(1, SUBGRID_RES - 1):
+      for x in range(1, SUBGRID_RES - 1):
+        subgrids.append([floor(x * SUBGRID_LEN_X), floor(y * SUBGRID_LEN_Y)])
 
-    lowerX = (floor(len(grid) / 4) // GRID_FACTOR) * GRID_FACTOR
-    for y in range(lowerX, floor(3 * (len(grid) - island_height) / 4), GRID_FACTOR):
-      lowerY = (floor(len(grid[y]) / 4) // GRID_FACTOR) * GRID_FACTOR
-      for x in range(lowerY, floor(3 * (len(grid[y]) - island_width) / 4), GRID_FACTOR):
-        if not grid[y][x]:
-          x_streak += 1
-        else:
-          x_streak = 0
-        
-        if x_streak == island_width:
-          bad = False
+    island_locations_result = Parallel(n_jobs=5)(delayed(find_island_location)(grid, island_width, island_height, subgrid[0], subgrid[0] + SUBGRID_LEN_X, subgrid[1], subgrid[1] + SUBGRID_LEN_Y) for subgrid in subgrids)
+    island_locations = [
+      l
+      for xs in island_locations_result
+      for l in xs
+    ]
 
-          for checkY in range(y, y + island_height + 1, GRID_FACTOR):
-            for checkX in range((x - x_streak), x + 1, GRID_FACTOR):
-              if grid[checkY][checkX]:
-                bad = True
-                x_streak = 0
-                break
-
-            if bad:
-              break
-          
-          if not bad:
-            islandLocations.append([x - island_width + (island_width / 2), y + (island_height / 2)])
-
-    if len(islandLocations) == 0:
+    if len(island_locations) == 0:
       print("No island location found in graph, regenerating...\n")
       island_found = False
     else:
@@ -318,7 +345,7 @@ def process_graph(similarity, pre_ships):
   closest_location = [SCALE_RES, SCALE_RES]
   closest_distance = sqrt(2 * ((SCALE_RES / 2) ** 2))
 
-  for location in islandLocations:
+  for location in island_locations:
     distance = sqrt(((location[0] - (SCALE_RES / 2)) ** 2) + ((location[1] - (SCALE_RES / 2)) ** 2))
 
     if distance < closest_distance:

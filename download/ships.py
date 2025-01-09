@@ -22,7 +22,7 @@ def download_ships(reset):
   all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=fields)
 
   if os.environ["DEV"] == "TRUE":
-    all_ships = all_ships[0:500]
+    all_ships = all_ships[0:100]
 
   fixed_ships = []
   readme_urls = []
