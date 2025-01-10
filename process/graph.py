@@ -97,17 +97,17 @@ def process_subgraph(g, data, cluster_idx, membership):
       if coords[1] > max_y:
         max_y = coords[1]
 
-    aspect = (max_x - min_x) / (max_y - min_y)
+    aspect = (max_x - min_x) / max(1, (max_y - min_y))
 
     scaled_nodes = {}
     for nodeId in nodes.keys():
       node = nodes[nodeId]
 
-      percent_x = (node[0] - min_x) / (max_x - min_x)
+      percent_x = (node[0] - min_x) / max((max_x - min_x), 1)
       scaled_x = aspect * SCALE_RES * percent_x
 
-      percent_y = (node[1] - min_y) / (max_y - min_y)
-      scaled_y = (1 / aspect) * SCALE_RES * percent_y
+      percent_y = (node[1] - min_y) / max((max_y - min_y), 1)
+      scaled_y = (1 / max(aspect, 1)) * SCALE_RES * percent_y
 
       scaled_nodes[nodeId] = [scaled_x, scaled_y]
 
@@ -116,9 +116,10 @@ def process_subgraph(g, data, cluster_idx, membership):
 def find_island_location(grid, island_height, island_width, minX, maxX, minY, maxY):
   x_streak = 0
   island_locations = []
+  grid_len = len(grid)
 
-  for y in range(minX, maxX):
-    for x in range(minY, maxY):
+  for y in range(minY, maxY):
+    for x in range(minX, maxX):
       if not grid[y][x]:
         x_streak += 1
       else:
@@ -127,8 +128,9 @@ def find_island_location(grid, island_height, island_width, minX, maxX, minY, ma
       if x_streak == island_width:
         bad = False
 
-        for checkY in range(y, y + island_height + 1):
-          for checkX in range((x - x_streak), x + 1):
+        for checkY in range(y, min(y + island_height + 1, grid_len)):
+          y_len = len(grid[checkY])
+          for checkX in range((x - x_streak), min(x + 1, y_len)):
             if grid[checkY][checkX]:
               bad = True
               x_streak = 0
@@ -142,7 +144,7 @@ def find_island_location(grid, island_height, island_width, minX, maxX, minY, ma
   
   return island_locations
 
-def process_grid(nodes, start, end, width):
+def process_grid(taken_coordinates, start, end, width):
   grid = []
   for y in range(start, end):
     row = []
@@ -150,12 +152,8 @@ def process_grid(nodes, start, end, width):
     for x in range(width):
       row.append(False)
 
-      for id in nodes.keys():
-        n = nodes[id]
-
-        if floor(n[0]) == x and floor(n[1]) == y:
-          row[x] = True
-          break;
+      if f"{x},{y}" in taken_coordinates:
+        row[x] = True
     
     grid.append(row)
 
@@ -271,6 +269,7 @@ def process_graph(similarity, pre_ships):
       scaled_clusters[nodeId] = [scaled_x, scaled_y]
     
     final_nodes = {}
+    taken_coodinates = {}
 
     print("Pasting in subgraphs...")
     cluster_gen = subgraphs()
@@ -298,7 +297,16 @@ def process_graph(similarity, pre_ships):
       height = max_y - min_y
 
       for cluster_node in cluster:
-        final_nodes[cluster_node] = [cluster[cluster_node][0] + cluster_x - (width / 2), cluster[cluster_node][1] + cluster_y - (height / 2)]
+        node_x = cluster[cluster_node][0] + cluster_x - (width / 2)
+        node_y = cluster[cluster_node][1] + cluster_y - (height / 2)
+        try:
+          taken_coodinates[f"{floor(node_x)},{floor(node_y)}"] = True
+        except:
+          print(cluster[cluster_node][0])
+          print(cluster_x)
+          print(width)
+        
+        final_nodes[cluster_node] = [node_x, node_y]
     
     # island placing
     print("Building grid...")
@@ -310,7 +318,7 @@ def process_graph(similarity, pre_ships):
     for y in range(GRID_SPLIT - 1):
       subrows.append(y * SPLIT_HEIGHT)
 
-    subrows_result = Parallel(n_jobs=5)(delayed(process_grid)(final_nodes, subrow, subrow + SPLIT_HEIGHT, SCALE_RES) for subrow in subrows)
+    subrows_result = Parallel(n_jobs=5)(delayed(process_grid)(taken_coodinates, subrow, subrow + SPLIT_HEIGHT, SCALE_RES) for subrow in subrows)
     grid = [
       r
       for xs in subrows_result
@@ -324,6 +332,8 @@ def process_graph(similarity, pre_ships):
     SUBGRID_RES = 5
     SUBGRID_LEN_Y = floor(len(grid) / SUBGRID_RES)
     SUBGRID_LEN_X = floor(len(grid[0]) / SUBGRID_RES)
+    print(SUBGRID_LEN_X)
+    print(SUBGRID_LEN_Y)
     subgrids = []
     for y in range(1, SUBGRID_RES - 1):
       for x in range(1, SUBGRID_RES - 1):
