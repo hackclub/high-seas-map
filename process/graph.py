@@ -240,7 +240,7 @@ def process_graph(similarity, pre_ships):
     max_x = 0
     min_y = 0
     max_y = 0
-    SCALE_RES = 15000
+    SCALE_RES = 18000
     for cluster_node in nodes:
       coords = nodes[cluster_node]
       if coords[0] < min_x:
