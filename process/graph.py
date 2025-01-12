@@ -325,8 +325,8 @@ def process_graph(similarity, pre_ships):
       for r in xs
     ]
     
-    island_width = ceil(SCALE_RES * 0.15)
-    island_height = ceil(SCALE_RES * 0.15)
+    island_width = ceil(SCALE_RES * 0.1)
+    island_height = ceil(SCALE_RES * 0.1)
 
     print("Placing central island...")
     SUBGRID_RES = 5
