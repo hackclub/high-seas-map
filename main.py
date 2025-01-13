@@ -84,7 +84,7 @@ def refresh_all(auth: Auth, response: Response):
   return None
 
 @api.post("/refresh/ships")
-def refresh_all(auth: Auth, response: Response):
+def refresh_ships(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
@@ -94,7 +94,7 @@ def refresh_all(auth: Auth, response: Response):
   return None
 
 @api.post("/refresh/similarity")
-def refresh_all(auth: Auth, response: Response):
+def refresh_similarity(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
@@ -104,7 +104,7 @@ def refresh_all(auth: Auth, response: Response):
   return None
 
 @api.post("/refresh/graph")
-def refresh_all(auth: Auth, response: Response):
+def refresh_graph(auth: Auth, response: Response):
   if auth.token != os.environ["REFRESH_TOKEN"]:
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
