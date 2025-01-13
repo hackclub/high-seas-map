@@ -19,23 +19,16 @@ def download_ships(reset):
 
   print("Downloading ships from Airtable...")
   fields = ["identifier", "title", "readme_url", "repo_url", "screenshot_url", "hours", "entrant__slack_id"]
-  all_ships = ships_table.all(formula="AND(AND({hidden} = FALSE(), {project_source} = \"high_seas\"), {ship_status} = \"shipped\")", fields=fields)
-
-  if os.environ["DEV"] == "TRUE":
-    all_ships = all_ships[0:1000]
+  formula_conditions = ["{hidden} = FALSE()", "{project_source} = \"high_seas\"", "{ship_status} = \"shipped\""]
+  for field in fields:
+    formula_conditions.append("AND({" + field + "} != BLANK(), {" + field + "} != \"\")")
+  
+  formula = f"AND({", ".join(formula_conditions)})" 
+  all_ships = ships_table.all(formula=formula, fields=fields, max_records=100 if os.environ["DEV"] == "TRUE" else None)
 
   fixed_ships = []
   readme_urls = []
   for ship in all_ships:
-    missing_fields = []
-    for field in fields:
-      if field not in ship["fields"]:
-        missing_fields.append(field)
-    
-    if len(missing_fields) > 0:
-      print(f"Skipping ship record {ship['id']} since it does not have field(s): {", ".join(missing_fields)}")
-      continue
-    
     readme_url = str(ship.get("fields").get("readme_url"))
 
     if readme_url == "None":
@@ -83,7 +76,7 @@ def download_ships(reset):
 
     fixed_ships.append(ship_dict)
 
-  print("Done with ships")
+  print(f"Done with ships ({len(fixed_ships)} ships)")
   if reset:
     with psycopg.connect(os.environ["DB_URI"]) as conn:
       with conn.cursor() as cur:

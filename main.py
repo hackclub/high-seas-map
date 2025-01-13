@@ -38,8 +38,9 @@ def start_scheduler():
         run_all()
 
 def on_starting(server):
-  p = Thread(target=start_scheduler)
-  p.start()
+  if os.environ["DEV"] == "FALSE":
+    p = Thread(target=start_scheduler)
+    p.start()
 
 @api.get("/ships")
 def ships():
