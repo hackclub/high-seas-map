@@ -162,7 +162,7 @@ def process_grid(taken_coordinates, start, end, width):
 def process_graph(similarity, pre_ships):
   if similarity != None:
     data = list(map(lambda s: [s], similarity))
-    filtered_ships = list(map(lambda s: [s], pre_ships))
+    pre_filtered_ships = list(map(lambda s: [s], pre_ships))
   else:
     with psycopg.connect(os.environ["DB_URI"]) as conn:
       with conn.cursor() as cur:
@@ -171,7 +171,7 @@ def process_graph(similarity, pre_ships):
 
       with conn.cursor() as cur:
         cur.execute("SELECT id FROM ships WHERE filtered = true")
-        filtered_ships = list(filter(lambda r: r[0] != "HIGH_SEAS_ISLAND", cur.fetchall()))
+        pre_filtered_ships = list(filter(lambda r: r[0] != "HIGH_SEAS_ISLAND", cur.fetchall()))
 
   if len(data) == 0:
     print("Similarities not processed.")
@@ -182,7 +182,7 @@ def process_graph(similarity, pre_ships):
     print("Building graph...")
     
     edges_result = Parallel(n_jobs=5)(delayed(process_top_lang_index)(row) for row in data)
-    filtered_ships = list(map(lambda row: row[0], filtered_ships))
+    filtered_ships = list(map(lambda row: row[0], pre_filtered_ships))
     g = ig.Graph()
     g.add_vertices(filtered_ships)
     g.add_vertex("HIGH_SEAS_ISLAND")
