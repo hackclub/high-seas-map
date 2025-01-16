@@ -54,7 +54,7 @@ def process_similarity(pre_ships):
 
     return (ship, ship_languages)
   
-  ships_result = Parallel(n_jobs=5)(delayed(download_data)(row[0]) for row in ships)
+  ships_result = Parallel(n_jobs=10)(delayed(download_data)(row[0]) for row in ships)
   for ship_res in ships_result:
     filtered_ships[ship_res[0][0]] = ship_res[0]
     languages[ship_res[0][0]] = ship_res[1]
