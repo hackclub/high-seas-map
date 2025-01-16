@@ -54,7 +54,7 @@ def process_subgraph(g, data, cluster_idx, membership):
   else:
     sg = ig.Graph()
 
-    edges_result = Parallel(n_jobs=5)(delayed(process_lang_index)(row, cluster_ships) for row in data)
+    edges_result = Parallel(n_jobs=10)(delayed(process_lang_index)(row, cluster_ships) for row in data)
     sg.add_vertices(cluster_ships)
     filtered_result = list(filter(lambda r: r != None, edges_result))
     if len(filtered_result) == 0:
@@ -181,7 +181,7 @@ def process_graph(similarity, pre_ships):
   while not island_found:
     print("Building graph...")
     
-    edges_result = Parallel(n_jobs=5)(delayed(process_top_lang_index)(row) for row in data)
+    edges_result = Parallel(n_jobs=10)(delayed(process_top_lang_index)(row) for row in data)
     filtered_ships = list(map(lambda row: row[0], pre_filtered_ships))
     g = ig.Graph()
     g.add_vertices(filtered_ships)
@@ -219,7 +219,7 @@ def process_graph(similarity, pre_ships):
     for v in clustering.membership:
       cluster_counts[v] += 1
 
-    cluster_edges_result = Parallel(n_jobs=5)(delayed(process_cluster_edges)(i, count, len(cg.vs)) for i, count in enumerate(cluster_counts))
+    cluster_edges_result = Parallel(n_jobs=10)(delayed(process_cluster_edges)(i, count, len(cg.vs)) for i, count in enumerate(cluster_counts))
     cluster_edges, cluster_weights = list(zip(*[edge for result in cluster_edges_result for edge in result]))
     cg.add_edges(cluster_edges, {
       'weight': cluster_weights
@@ -318,7 +318,7 @@ def process_graph(similarity, pre_ships):
     for y in range(GRID_SPLIT - 1):
       subrows.append(y * SPLIT_HEIGHT)
 
-    subrows_result = Parallel(n_jobs=5)(delayed(process_grid)(taken_coodinates, subrow, subrow + SPLIT_HEIGHT, SCALE_RES) for subrow in subrows)
+    subrows_result = Parallel(n_jobs=10)(delayed(process_grid)(taken_coodinates, subrow, subrow + SPLIT_HEIGHT, SCALE_RES) for subrow in subrows)
     grid = [
       r
       for xs in subrows_result
@@ -339,7 +339,7 @@ def process_graph(similarity, pre_ships):
       for x in range(1, SUBGRID_RES - 1):
         subgrids.append([floor(x * SUBGRID_LEN_X), floor(y * SUBGRID_LEN_Y)])
 
-    island_locations_result = Parallel(n_jobs=5)(delayed(find_island_location)(grid, island_width, island_height, subgrid[0], subgrid[0] + SUBGRID_LEN_X, subgrid[1], subgrid[1] + SUBGRID_LEN_Y) for subgrid in subgrids)
+    island_locations_result = Parallel(n_jobs=10)(delayed(find_island_location)(grid, island_width, island_height, subgrid[0], subgrid[0] + SUBGRID_LEN_X, subgrid[1], subgrid[1] + SUBGRID_LEN_Y) for subgrid in subgrids)
     island_locations = [
       l
       for xs in island_locations_result
