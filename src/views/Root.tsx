@@ -56,7 +56,7 @@ const LoadGraph = (props: {
               label: "",
               x: ships[ship].x_pos,
               y: ships[ship].y_pos,
-              size: 75,
+              size: 70,
               color: "#00000000",
               image: "harbor.svg",
             });
@@ -228,7 +228,7 @@ export default function Root() {
             labelSize: 14,
             defaultDrawNodeHover: drawHover,
             minCameraRatio: 0.01,
-            maxCameraRatio: 0.3,
+            maxCameraRatio: 0.25,
           }}
         >
           <ForceLayout />
