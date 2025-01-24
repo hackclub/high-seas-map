@@ -89,7 +89,7 @@ def refresh_ships(auth: Auth, response: Response):
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return None
   
-  download_ships(None)
+  download_ships(reset=True)
   gc.collect()
   return None
 

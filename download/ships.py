@@ -6,6 +6,14 @@ from slack_sdk import WebClient
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import psycopg
 from time import sleep, time
+from joblib import Parallel, delayed
+
+def make_ship_args(ship):
+  arg = (ship["id"], ship["fields"]["identifier"], ship["fields"]["readme_url"], ship["fields"]["repo_url"],
+                  ship["fields"]["title"], ship["fields"]["screenshot_url"], ship["fields"]["hours"],
+                  ship["fields"]["entrant__slack_id"][0], ship["fields"]["slack_username"])
+
+  return arg
 
 def download_ships(reset):
   api = Api(os.environ['AIRTABLE_API_KEY'])
@@ -19,7 +27,7 @@ def download_ships(reset):
 
   print("Downloading ships from Airtable...")
   fields = ["identifier", "title", "readme_url", "repo_url", "screenshot_url", "hours", "entrant__slack_id"]
-  formula_conditions = ["{hidden} = FALSE()", "{project_source} = \"high_seas\"", "{ship_status} = \"shipped\""]
+  formula_conditions = ["{hidden} = FALSE()", "{project_source} = \"high_seas\"", "{ship_status} = \"shipped\"", "{has_ysws_submission_id} = TRUE()"]
   for field in fields:
     formula_conditions.append("AND({" + field + "} != BLANK(), {" + field + "} != \"\")")
   
@@ -83,11 +91,8 @@ def download_ships(reset):
         cur.execute("DELETE FROM similarity")
         cur.execute("DELETE FROM ships")
 
-        args = []
-        for ship in fixed_ships:
-          args.append((ship["id"], ship["fields"]["identifier"], ship["fields"]["readme_url"], ship["fields"]["repo_url"],
-                            ship["fields"]["title"], ship["fields"]["screenshot_url"], ship["fields"]["hours"],
-                            ship["fields"]["entrant__slack_id"][0], ship["fields"]["slack_username"]))
+        args_result = Parallel(n_jobs=10)(delayed(make_ship_args)(ship) for ship in fixed_ships)
+        args = list(args_result)
         
         cur.execute("INSERT INTO ships (id, filtered) VALUES ('HIGH_SEAS_ISLAND', true)")
         cur.executemany("""
