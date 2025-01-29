@@ -339,8 +339,6 @@ def process_graph(similarity, pre_ships):
     SUBGRID_RES = 5
     SUBGRID_LEN_Y = floor(len(grid) / SUBGRID_RES)
     SUBGRID_LEN_X = floor(len(grid[0]) / SUBGRID_RES)
-    print(SUBGRID_LEN_X)
-    print(SUBGRID_LEN_Y)
     subgrids = []
     for y in range(1, SUBGRID_RES - 1):
       for x in range(1, SUBGRID_RES - 1):
