@@ -30,15 +30,16 @@ def start_scheduler():
   scheduler.add_job(run_all, 'interval', hours=24)
   scheduler.start()
 
+  if os.path.exists("data/nodes.json"):
+    nodes = json.load(open("data/nodes.json"))
+
+    if "HIGH_SEAS_ISLAND" not in nodes:
+      run_all()
+
+def on_starting(server):
   if not os.path.exists("data"):
     os.mkdir("data")
 
-  nodes = json.load(open("data/nodes.json"))
-
-  if "HIGH_SEAS_ISLAND" not in nodes:
-    run_all()
-
-def on_starting(server):
   if os.environ["DEV"] == "FALSE":
     p = Thread(target=start_scheduler)
     p.start()
@@ -57,7 +58,12 @@ def ships():
   if len(ships) == 0:
     return None
   
-  nice_ships = {}
+  nice_ships = {
+    'HIGH_SEAS_ISLAND': {
+      'x_pos': float(nodes["HIGH_SEAS_ISLAND"][0]),
+      'y_pos': float(nodes["HIGH_SEAS_ISLAND"][1])
+    }
+  }
   for ship in ships:
     id = ship["id"]
 

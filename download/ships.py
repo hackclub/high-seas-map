@@ -33,7 +33,7 @@ def download_ships(reset):
     formula_conditions.append("AND({" + field + "} != BLANK(), {" + field + "} != \"\")")
   
   formula = f"AND({", ".join(formula_conditions)})" 
-  all_ships = ships_table.all(formula=formula, fields=fields, max_records=100 if os.environ["DEV"] == "TRUE" else None)
+  all_ships = ships_table.all(formula=formula, fields=fields, max_records=300 if os.environ["DEV"] == "TRUE" else None)
 
   fixed_ships = []
   readme_urls = []
@@ -86,6 +86,7 @@ def download_ships(reset):
     fixed_ships.append(ship_dict)
 
   print(f"Done with ships ({len(fixed_ships)} ships)")
+  
   if reset:
     # with psycopg.connect(os.environ["DB_URI"]) as conn:
     #   with conn.cursor() as cur:
