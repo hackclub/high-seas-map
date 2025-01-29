@@ -4,19 +4,23 @@ import os
 from urllib.parse import urlparse
 from time import sleep, time
 from joblib import Parallel, delayed
+import json
 
 def process_similarity(pre_ships):
   if pre_ships != None:
-    ships = list(map(lambda s: ((s["id"], s["fields"]["readme_url"], s["fields"]["repo_url"]),), pre_ships))
+    rships = pre_ships
   else:
-    with psycopg.connect(os.environ["DB_URI"]) as conn:
-      with conn.cursor() as cur:
-        cur.execute("SELECT (id, readme_url, repo_url) FROM ships")
-        ships = cur.fetchall()
+    # with psycopg.connect(os.environ["DB_URI"]) as conn:
+    #   with conn.cursor() as cur:
+    #     cur.execute("SELECT (id, readme_url, repo_url) FROM ships")
+    #     ships = cur.fetchall()
 
-        cur.close()
+    #     cur.close()
     
-    conn.close()
+    #   conn.close()
+    rships = json.load(open("data/ships.json"))
+
+  ships = list(map(lambda s: ((s["id"], s["fields"]["readme_url"], s["fields"]["repo_url"]),), rships))
 
   if len(ships) == 0:
     print("Ships not downloaded.")
@@ -118,13 +122,16 @@ def process_similarity(pre_ships):
   if pre_ships != None:
     return (insertArgs, list(filtered_ships.keys()))
   else:
-    with psycopg.connect(os.environ["DB_URI"]) as conn:
-      with conn.cursor() as cur:
-        cur.execute("DELETE FROM similarity")  
-        cur.executemany("INSERT INTO similarity (shipa, shipb, top_lang_value, lang_value) VALUES (%s, %s, %s, %s)", insertArgs)
-        cur.executemany("UPDATE ships SET filtered = true WHERE id = %s", updateArgs)
+    # with psycopg.connect(os.environ["DB_URI"]) as conn:
+    #   with conn.cursor() as cur:
+    #     cur.execute("DELETE FROM similarity")  
+    #     cur.executemany("INSERT INTO similarity (shipa, shipb, top_lang_value, lang_value) VALUES (%s, %s, %s, %s)", insertArgs)
+    #     cur.executemany("UPDATE ships SET filtered = true WHERE id = %s", updateArgs)
 
-        cur.close()
+    #     cur.close()
       
-      conn.commit()
-      conn.close()
+    #   conn.commit()
+    #   conn.close()
+
+    json.dump(insertArgs, open("data/similarity.json", "w"))
+    json.dump(list(filtered_ships.keys()), open("data/filtered_ships.json", "w"))

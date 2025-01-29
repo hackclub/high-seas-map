@@ -7,6 +7,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import psycopg
 from time import sleep, time
 from joblib import Parallel, delayed
+import json
 
 def make_ship_args(ship):
   arg = (ship["id"], ship["fields"]["identifier"], ship["fields"]["readme_url"], ship["fields"]["repo_url"],
@@ -16,7 +17,7 @@ def make_ship_args(ship):
   return arg
 
 def download_ships(reset):
-  api = Api(os.environ['AIRTABLE_API_KEY'])
+  api = Api(os.environ['AIRTABLE_API_KEY'], endpoint_url="https://middleman.hackclub.com/airtable")
   ships_table = api.table(os.environ['AIRTABLE_BASE'], os.environ['AIRTABLE_TABLE'])
 
   slack = WebClient(token=os.environ["SLACK_API_KEY"])
@@ -86,21 +87,23 @@ def download_ships(reset):
 
   print(f"Done with ships ({len(fixed_ships)} ships)")
   if reset:
-    with psycopg.connect(os.environ["DB_URI"]) as conn:
-      with conn.cursor() as cur:
-        cur.execute("DELETE FROM similarity")
-        cur.execute("DELETE FROM ships")
+    # with psycopg.connect(os.environ["DB_URI"]) as conn:
+    #   with conn.cursor() as cur:
+    #     cur.execute("DELETE FROM similarity")
+    #     cur.execute("DELETE FROM ships")
 
-        args_result = Parallel(n_jobs=10)(delayed(make_ship_args)(ship) for ship in fixed_ships)
-        args = list(args_result)
+    #     args_result = Parallel(n_jobs=10)(delayed(make_ship_args)(ship) for ship in fixed_ships)
+    #     args = list(args_result)
         
-        cur.execute("INSERT INTO ships (id, filtered) VALUES ('HIGH_SEAS_ISLAND', true)")
-        cur.executemany("""
-                      INSERT INTO ships (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username)
-                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                      """, args)
+    #     cur.execute("INSERT INTO ships (id, filtered) VALUES ('HIGH_SEAS_ISLAND', true)")
+    #     cur.executemany("""
+    #                   INSERT INTO ships (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username)
+    #                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    #                   """, args)
         
-      conn.commit()
+    #   conn.commit()
+
+    json.dump(fixed_ships, open("data/ships.json", "w"))
   else:
     return fixed_ships
 

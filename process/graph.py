@@ -6,6 +6,7 @@ import psycopg
 from joblib import Parallel, delayed
 from random import random
 import gc
+import json
 
 def find_ship_name(ships, shipId):
   for ship in ships:
@@ -161,17 +162,23 @@ def process_grid(taken_coordinates, start, end, width):
 
 def process_graph(similarity, pre_ships):
   if similarity != None:
-    data = list(map(lambda s: [s], similarity))
-    pre_filtered_ships = list(map(lambda s: [s], pre_ships))
+    rdata = similarity
+    rpre_filtered_ships = pre_ships
   else:
-    with psycopg.connect(os.environ["DB_URI"]) as conn:
-      with conn.cursor() as cur:
-        cur.execute("SELECT (shipa, shipb, top_lang_value, lang_value) FROM similarity")
-        data = cur.fetchall()
+    # with psycopg.connect(os.environ["DB_URI"]) as conn:
+    #   with conn.cursor() as cur:
+    #     cur.execute("SELECT (shipa, shipb, top_lang_value, lang_value) FROM similarity")
+    #     data = cur.fetchall()
 
-      with conn.cursor() as cur:
-        cur.execute("SELECT id FROM ships WHERE filtered = true")
-        pre_filtered_ships = list(filter(lambda r: r[0] != "HIGH_SEAS_ISLAND", cur.fetchall()))
+    #   with conn.cursor() as cur:
+    #     cur.execute("SELECT id FROM ships WHERE filtered = true")
+    #     pre_filtered_ships = list(filter(lambda r: r[0] != "HIGH_SEAS_ISLAND", cur.fetchall()))
+
+    rdata = json.load(open("data/similarity.json"))
+    rpre_filtered_ships = json.load(open("data/filtered_ships.json"))
+
+  data = list(map(lambda s: [s], rdata))
+  pre_filtered_ships = list(map(lambda s: [s], rpre_filtered_ships))
 
   if len(data) == 0:
     print("Similarities not processed.")
@@ -369,12 +376,14 @@ def process_graph(similarity, pre_ships):
   if similarity != None:
     return final_nodes
   else:
-    with psycopg.connect(os.environ["DB_URI"]) as conn:
-      with conn.cursor() as cur:
-        args = []
-        for node in final_nodes:
-          args.append((final_nodes[node][0], final_nodes[node][1], node))
+    # with psycopg.connect(os.environ["DB_URI"]) as conn:
+    #   with conn.cursor() as cur:
+    #     args = []
+    #     for node in final_nodes:
+    #       args.append((final_nodes[node][0], final_nodes[node][1], node))
         
-        cur.executemany("UPDATE ships SET x_pos = %s, y_pos = %s WHERE id = %s", args)
+    #     cur.executemany("UPDATE ships SET x_pos = %s, y_pos = %s WHERE id = %s", args)
 
-      conn.commit()
+    #   conn.commit()
+
+    json.dump(final_nodes, open("data/nodes.json", "w"))

@@ -6,6 +6,7 @@ from threading import Thread
 import os
 import psycopg
 import gc
+import json
 
 from all import run_all
 from download.ships import download_ships
@@ -29,13 +30,13 @@ def start_scheduler():
   scheduler.add_job(run_all, 'interval', hours=24)
   scheduler.start()
 
-  with psycopg.connect(os.environ["DB_URI"]) as conn:
-    with conn.cursor() as cur:
-      cur.execute("SELECT (x_pos, y_pos) FROM ships WHERE id = 'HIGH_SEAS_ISLAND'")
-      island = cur.fetchone()
+  if not os.path.exists("data"):
+    os.mkdir("data")
 
-      if island == None:
-        run_all()
+  nodes = json.load(open("data/nodes.json"))
+
+  if "HIGH_SEAS_ISLAND" not in nodes:
+    run_all()
 
 def on_starting(server):
   if os.environ["DEV"] == "FALSE":
@@ -44,31 +45,35 @@ def on_starting(server):
 
 @api.get("/ships")
 def ships():
-  with psycopg.connect(os.environ["DB_URI"]) as conn:
-    with conn.cursor() as cur:
-      cur.execute("SELECT (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username, x_pos, y_pos) FROM ships WHERE filtered = true")
-      ships = cur.fetchall()
+  # with psycopg.connect(os.environ["DB_URI"]) as conn:
+  #   with conn.cursor() as cur:
+  #     cur.execute("SELECT (id, ship_id, readme_url, repo_url, title, screenshot_url, hours, slack_id, slack_username, x_pos, y_pos) FROM ships WHERE filtered = true")
+  #     ships = cur.fetchall()
+
+  ships = json.load(open("data/ships.json"))
+  filtered = json.load(open("data/filtered_ships.json"))
+  nodes = json.load(open("data/nodes.json"))
 
   if len(ships) == 0:
     return None
   
   nice_ships = {}
-  for row in ships:
-    ship = row[0]
+  for ship in ships:
+    id = ship["id"]
 
     # make sure it has a location
-    if ship[9] != None:
-      nice_ships[ship[0]] = {
-        "identifier": ship[1],
-        "readme_url": ship[2],
-        "repo_url": ship[3],
-        "title": ship[4],
-        "screenshot_url": ship[5],
-        "hours": float(ship[6] or 0),
-        "slack_id": ship[7],
-        "slack_username": ship[8],
-        "x_pos": float(ship[9]),
-        "y_pos": float(ship[10]),
+    if id in nodes and id in filtered:
+      nice_ships[id] = {
+        "identifier": ship["fields"]["identifier"],
+        "readme_url": ship["fields"]["readme_url"],
+        "repo_url": ship["fields"]["repo_url"],
+        "title": ship["fields"]["title"],
+        "screenshot_url": ship["fields"]["screenshot_url"],
+        "hours": float(ship["fields"]["hours"] or 0),
+        "slack_id": ship["fields"]["entrant__slack_id"][0],
+        "slack_username": ship["fields"]["slack_username"],
+        "x_pos": float(nodes[id][0]),
+        "y_pos": float(nodes[id][1]),
       }
 
   return nice_ships
