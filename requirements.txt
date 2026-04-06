@@ -1,7 +1,7 @@
 pyairtable==2.3.3
 python-dotenv==1.0.1
 python_igraph==0.11.6
-Requests==2.32.3
+Requests==2.33.0
 pycairo==1.27.0
 fastapi[standard]==0.115.4
 gunicorn==23.0.0
